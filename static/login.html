@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>Log in</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="css/style.css" rel="stylesheet">
+
+    <!-- Bootstrap core JavaScript -->
+    <script src="vendor/jquery/jquery.min.js"></script>
+    <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+    <!-- User defined jQuery -->
+    <script src="js/authentication.js"></script>
+    <script>
+        $(document).ready(function() {
+            loggedIn();
+        });
+    </script>
+</head>
+<body class="hidden">
+    <div class="container-fluid">
+        <div class="mt-5 mb-2 row justify-content-center">
+            <h1>Cloud service</h1>
+        </div>
+        <div class="row justify-content-center">
+            <form id="login" class="col-sm-3">
+                <div class="form-group">
+                    <label for="emailField">Email address</label>
+                    <input type="email" class="form-control" id="emailField" name="email" placeholder="Enter email">
+                </div>
+                <div class="form-group">
+                    <label for="passwordField">Password</label>
+                    <input type="password" class="form-control" id="passwordField" name="password" placeholder="Password">
+                </div>
+                <input type="button" class="btn btn-primary float-right col-sm-auto" value="Log in" onclick="logIn()">
+                <br>
+                <br>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
