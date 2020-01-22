@@ -14,6 +14,8 @@ function isInputEmptyOrWhitespaces(formId) {
 
     $(formId).find("small").remove();
     $(formId).find(".alert").remove();
+    if(!$(formId)[0].reportValidity())
+        good = false;
 
     $("form" + formId + " :input").each(function(){
         var input = $(this);
@@ -50,6 +52,7 @@ function logIn() {
                     var wrongCred = $("<div class=\"alert alert-danger text-center\" role=\"alert\"></div>");
                     wrongCred.text("Wrong email address or password!");
                     wrongCred.insertBefore(".btn");
+                    $("input[type=\"password\"]").val("");
                 }
             }
         });
