@@ -127,7 +127,7 @@ function removeUser(email) {
         dataType: "json",
         complete: function(data) {
             response = data.responseJSON;
-            if(response.sucess == "true") {
+            if(response.success == true) {
                 console.log("obrisano");
             }
             else
