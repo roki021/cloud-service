@@ -62,6 +62,8 @@ public class CloudServiceControler {
 
         if(users.containsKey(key))
             user = users.get(key);
+        else if(superAdmins.containsKey(key))
+            user = superAdmins.get(key);
 
         return user;
     }
@@ -83,7 +85,8 @@ public class CloudServiceControler {
     public boolean addUser(User user) {
         boolean retVal = false;
         if(user != null) {
-            if(!users.containsKey(user.getEmail())) {
+            if(!users.containsKey(user.getEmail()) &&
+                    !superAdmins.containsKey(user.getEmail())) {
                 users.put(user.getEmail(), user);
                 retVal = true;
             }
@@ -99,7 +102,8 @@ public class CloudServiceControler {
     public boolean changeUser(String oldKey, User newUser) {
         boolean retVal = false;
         if(newUser != null) {
-            if(!users.containsKey(newUser.getEmail())) {
+            if(!users.containsKey(newUser.getEmail()) &&
+                    !superAdmins.containsKey(newUser.getEmail())) {
                 removeUser(oldKey);
                 users.put(newUser.getEmail(), newUser);
                 retVal = true;
