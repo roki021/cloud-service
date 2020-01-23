@@ -21,6 +21,8 @@ public class CloudServiceApp {
 
         staticFiles.externalLocation(new File("./static").getCanonicalPath());
 
+        /* ********************* AUTHORIZATION AND LOADING PAGES ********************* */
+
         post("/rest/logIn", (req, res) -> {
             res.type("application/json");
             User user = null;
@@ -61,6 +63,8 @@ public class CloudServiceApp {
 
             return "{\"loggedOut\": " + logOut + "}";
         });
+
+        /* ********************* WORKING WITH USERS ********************* */
 
         get("/rest/getUsers", (req, res) -> {
            res.type("application/json");
