@@ -61,6 +61,27 @@ public class CloudServiceApp {
 
             return "{\"loggedOut\": " + logOut + "}";
         });
+
+        get("/rest/getUsers", (req, res) -> {
+           res.type("application/json");
+           Session ss = req.session();
+           User user = ss.attribute("user");
+
+           if(user == null) {
+               res.status(403);
+               return "{\"access\": Unauthorized}";
+           }
+           else if(user.getRole() == User.Role.SUPER_ADMIN) {
+               return g.toJson(cloudService.getAllUsers());
+           }
+           else if(user.getRole() == User.Role.ADMIN) {
+                return g.toJson(cloudService.getUsers(user.getOrganization()));
+           }
+           else {
+               res.status(403);
+               return "{\"access\": Unauthorized}";
+           }
+        });
     }
 
     public static boolean isUserLoggedIn(Request req) {

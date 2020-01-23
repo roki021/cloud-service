@@ -18,8 +18,9 @@
     <script src="vendor/jquery/jquery.min.js"></script>
     <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 
-    <!-- User defined jQuery -->
+    <!-- User defined jQuery scripts -->
     <script src="js/authentication.js"></script>
+    <script src="js/users.js"></script>
     <script>
         $(document).ready(function() {
             loggedOut();
@@ -38,6 +39,7 @@
         <div class="list-group list-group-flush">
             <a href="#" class="list-group-item list-group-item-action bg-light">Virtual Machines</a>
             <a href="#" class="list-group-item list-group-item-action bg-light">Discs</a>
+            <a href="#" onclick="getUsers()" class="list-group-item list-group-item-action bg-light">User list</a>
         </div>
     </div>
     <!-- /#sidebar-wrapper -->
