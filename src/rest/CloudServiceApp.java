@@ -86,6 +86,76 @@ public class CloudServiceApp {
                return "{\"access\": Unauthorized}";
            }
         });
+
+        get("/rest/getUserRole", (req, res) -> {
+            res.type("application/json");
+            Session ss = req.session();
+            User user = ss.attribute("user");
+
+            if(user == null) {
+                return "{\"currentUser\": \"none\"}";
+            }
+            else if(user.getRole() == User.Role.SUPER_ADMIN) {
+                return "{\"currentUser\": \"SUPER_ADMIN\"}";
+            }
+            else if(user.getRole() == User.Role.ADMIN) {
+                return "{\"currentUser\": \"ADMIN\"}";
+            }
+            else {
+                return "{\"currentUser\": \"USER\"}";
+            }
+        });
+
+        get("/rest/addUser", (req, res) -> {
+            res.type("application/json");
+            Session ss = req.session();
+            User user = ss.attribute("user");
+
+            if(user == null) {
+                res.status(403);
+                return "{\"access\": Unauthorized}";
+            }
+            else if(user.getRole() == User.Role.SUPER_ADMIN) {
+                return g.toJson(cloudService.getAllUsers());
+            }
+            else if(user.getRole() == User.Role.ADMIN) {
+                return g.toJson(cloudService.getUsers(user.getOrganization()));
+            }
+            else {
+                res.status(403);
+                return "{\"access\": Unauthorized}";
+            }
+        });
+
+        get("/rest/removeUser", (req, res) -> {
+            res.type("application/json");
+            Session ss = req.session();
+            User user = ss.attribute("user");
+            String email = req.queryParams("email");
+            String success = "false";
+
+            if(user == null) {
+                res.status(403);
+                success = "false";
+            }
+            else if(user.getRole() == User.Role.SUPER_ADMIN) {
+                cloudService.removeUser(email);
+                success = "true";
+            }
+            else if(user.getRole() == User.Role.ADMIN) {
+                if(cloudService.getUser(email).getOrganization().equals(user.getOrganization())) {
+                    cloudService.removeUser(email);
+                    success = "true";
+                }
+                success = "false";
+            }
+            else {
+                res.status(403);
+                success = "false";
+            }
+
+            return "{\"success\": " + success + "}";
+        });
     }
 
     public static boolean isUserLoggedIn(Request req) {

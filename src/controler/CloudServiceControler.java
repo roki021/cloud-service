@@ -33,6 +33,7 @@ public class CloudServiceControler {
 
     public CloudServiceControler() {
         users = new HashMap<String, User>();
+        users.put("pera@gmail.com", new User("pera@gmail.com", "pera", "pera", "peric", null, User.Role.USER));
         organizations = new HashMap<String, Organization>();
         virtualMachines = new HashMap<String, VM>();
         vmCategories = new HashMap<String, VMCategory>();
