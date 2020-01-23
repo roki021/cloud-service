@@ -59,6 +59,23 @@ function logIn() {
     }
 }
 
+function logOut() {
+    $.ajax({
+        url: "rest/logOut",
+        type: "GET",
+        dataType: "json",
+        complete: function(data) {
+            response = data.responseJSON;
+
+            if(response.loggedOut) {
+                window.location.replace("login.html");
+            } else {
+                alert("Something went wrong with logging out...\nPlease try again.");
+            }
+        }
+    });
+}
+
 function loggedIn() {
      $.ajax({
          url: "rest/isLogged",

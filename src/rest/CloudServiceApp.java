@@ -24,7 +24,7 @@ public class CloudServiceApp {
         post("/rest/logIn", (req, res) -> {
             res.type("application/json");
             User user = null;
-            boolean resMsg = false;
+            boolean logIn = false;
             try {
                 user = g.fromJson(req.body(), User.class);
                 Session ss = req.session(true);
@@ -34,18 +34,32 @@ public class CloudServiceApp {
                     if(cloudService.checkUserCredentials(user)) {
                         sessionUser = cloudService.getUser(user.getEmail());
                         ss.attribute("user", sessionUser);
-                        resMsg = true;
+                        logIn = true;
                     }
                 }
             } catch(Exception ex) {}
 
-            return "{\"loggedIn\": " + resMsg + "}";
+            return "{\"loggedIn\": " + logIn + "}";
         });
 
         get("/rest/isLogged", (req, res) -> {
             res.type("application/json");
 
             return "{\"isLogged\": " + isUserLoggedIn(req) + "}";
+        });
+
+        get("/rest/logOut", (req, res) -> {
+            res.type("application/json");
+            Session ss = req.session();
+            User user = ss.attribute("user");
+            boolean logOut = false;
+
+            if(user != null) {
+                ss.invalidate();
+                logOut = true;
+            }
+
+            return "{\"loggedOut\": " + logOut + "}";
         });
     }
 

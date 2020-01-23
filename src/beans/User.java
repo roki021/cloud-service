@@ -7,7 +7,8 @@ public class User {
     private String password;
     private String firstName;
     private String lastName;
-    private Organization organization;
+    private String organization;
+
     private Role role;
 
     public static User generateSuperAdmin(String email, String password, String firstName, String lastName) {
@@ -16,7 +17,7 @@ public class User {
 
     public User() {}
 
-    public User(String email, String password, String firstName, String lastName, Organization organization, Role role) {
+    public User(String email, String password, String firstName, String lastName, String organization, Role role) {
         this.email = email;
         this.password = password;
         this.firstName = firstName;
@@ -57,11 +58,11 @@ public class User {
         this.lastName = lastName;
     }
 
-    public Organization getOrganization() {
+    public String getOrganization() {
         return organization;
     }
 
-    public void setOrganization(Organization organization) {
+    public void setOrganization(String organization) {
         this.organization = organization;
     }
 

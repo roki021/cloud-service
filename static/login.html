@@ -21,6 +21,13 @@
     <script>
         $(document).ready(function() {
             loggedIn();
+
+            $("input").not(":input[type=button]").keypress(function (e) {
+                if (e.which == 13) {
+                    $("input[type=button]").click();
+                    return false;
+                }
+            });
         });
     </script>
 </head>
