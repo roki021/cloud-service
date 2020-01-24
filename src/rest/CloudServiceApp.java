@@ -1,9 +1,11 @@
 package rest;
 
+import beans.Organization;
 import beans.User;
 import com.google.gson.Gson;
 import controler.CloudServiceControler;
 import spark.Request;
+import spark.Response;
 import spark.Session;
 
 import java.io.File;
@@ -156,6 +158,38 @@ public class CloudServiceApp {
 
             return "{\"success\": " + success + "}";
         });
+
+        /* ********************* WORKING WITH ORGANIZATIONS ********************* */
+
+        get("/rest/getOrgs", (req, res) -> {
+            res.type("application/json");
+            User user = isUserLoggedIn(req);
+
+            if(user != null) {
+                if(user.getRole() == User.Role.SUPER_ADMIN) {
+                    return g.toJson(cloudService.getAllOrganizations());
+                }
+            }
+
+            return responseStatus(res, 403, "Unauthorized access");
+        });
+
+        post("/rest/addOrg", (req, res) -> {
+            res.type("application/json");
+            Organization org = null;
+            try {
+                org = g.fromJson(req.body(), Organization.class);
+            } catch(Exception ex) {}
+            User user = isUserLoggedIn(req);
+
+            if(user != null) {
+                if(user.getRole() == User.Role.SUPER_ADMIN) {
+                    return "{\"added\":" + cloudService.addOrganization(org) + "}";
+                }
+            }
+
+            return responseStatus(res, 403, "Unauthorized access");
+        });
     }
 
     public static User isUserLoggedIn(Request req) {
@@ -163,5 +197,10 @@ public class CloudServiceApp {
         User loggedUser = ss.attribute("user");
 
         return loggedUser;
+    }
+
+    public static String responseStatus(Response res, int code, String message) {
+        res.status(code);
+        return "{\"message\": " + message + "}";
     }
 }

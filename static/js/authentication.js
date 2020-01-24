@@ -117,16 +117,16 @@ function setUpPageByUser(user) {
     $("#user-name").text(user.firstName);
     var sidebarItems = $("#sidebar-items");
 
-    sidebarItems.append(createSidebarItem("Virtual machines", "vms", function() {}));
-    sidebarItems.append(createSidebarItem("Discs", "discs", function() {}))
+    sidebarItems.append(createSidebarItem("Virtual machines", "vms", function() {$("#canvas").empty();}));
+    sidebarItems.append(createSidebarItem("Discs", "discs", function() {$("#canvas").empty();}))
     switch(user.role) {
         case "SUPER_ADMIN":
-            sidebarItems.append(createSidebarItem("Organizations", "orgs", function() {}));
+            sidebarItems.append(createSidebarItem("Organizations", "orgs", getOrganizations));
             sidebarItems.append(createSidebarItem("Users", "users", getUsers));
-            sidebarItems.append(createSidebarItem("VM categories", "vmcats", function() {}));
+            sidebarItems.append(createSidebarItem("VM categories", "vmcats", function() {$("#canvas").empty();}));
         break;
         case "ADMIN":
-            sidebarItems.append(createSidebarItem("Organization", "orgs", function() {}));
+            sidebarItems.append(createSidebarItem("Organization", "orgs", function() {$("#canvas").empty();}));
             sidebarItems.append(createSidebarItem("Users", "users", getUsers));
         break;
     }
@@ -135,6 +135,8 @@ function setUpPageByUser(user) {
 
     if(selectedItem) {
         $("#" + selectedItem).click();
+    } else {
+        $("#vms").click();
     }
 
     window.sessionStorage.setItem("role", user.role);
@@ -142,16 +144,27 @@ function setUpPageByUser(user) {
 
 function createSidebarItem(text, id, clickFunc) {
     var listItem = $(`<a href="#" class="list-group-item list-group-item-action bg-light"/>`);
-    listItem.click( function() {
-        $(".list-group-item").removeClass("bg-dark text-white");
-        $(".list-group-item").addClass("bg-light text-dark");
-        $(this).removeClass("bg-light text-dark");
-        $(this).addClass("bg-dark text-white");
-    });
     listItem
         .text(text)
         .attr("id", id)
         .click(clickFunc);
 
+    listItem.click( function() {
+            $(".list-group-item").removeClass("bg-dark text-white");
+            $(".list-group-item").addClass("bg-light text-dark");
+            $(this).removeClass("bg-light text-dark");
+            $(this).addClass("bg-dark text-white");
+
+            window.sessionStorage.setItem("selectedItem", id);
+        });
+
     return listItem;
+}
+
+function statusMessageStyle(statusCode, message) {
+    var div = $(`<div class="row justify-content-center"/>`);
+    div.append(`<h2>Error ${statusCode}</h3>`);
+    div.append(`<h5>${message}</h5>`)
+
+    return div;
 }

@@ -1,5 +1,4 @@
 function getUsers() {
-    window.sessionStorage.setItem("selectedItem", "users");
     $.ajax({
         url: "rest/getUsers",
         type: "GET",
@@ -26,7 +25,7 @@ function getUsers() {
                             <td>${user.firstName}</td>
                             <td>${user.lastName}</td>
                             <td>${user.organization}</td>
-                            <td><a href="#" onclick="editUser('${user.email}')"<i class="fa fa-pencil pr-2"></i></a><a href="#" onclick="removeUser('${user.email}')"><i class="fa fa-trash-o"></i></a></td>
+                            <td><a href="#" onclick="editUser('${user.email}')"><i class="fa fa-pencil pr-2"></i></a><a href="#" onclick="removeUser('${user.email}')"><i class="fa fa-trash-o"></i></a></td>
                         </tr>
                     `;
                     tbody.append(row);

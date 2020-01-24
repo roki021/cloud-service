@@ -33,6 +33,7 @@ public class CloudServiceControler {
 
     public CloudServiceControler() {
         users = new HashMap<String, User>();
+        users.put("mika@gmail.com", new User("mika@gmail.com", "mika", "mika", "mikic", null, User.Role.ADMIN));
         users.put("pera@gmail.com", new User("pera@gmail.com", "pera", "pera", "peric", null, User.Role.USER));
         organizations = new HashMap<String, Organization>();
         virtualMachines = new HashMap<String, VM>();
@@ -76,7 +77,7 @@ public class CloudServiceControler {
     public List<User> getUsers(String organization) {
         ArrayList<User> found = new ArrayList<User>();
         for(User u : users.values()) {
-            if(u.getOrganization().equals(organization))
+            if(u.getOrganization() != null && u.getOrganization().equals(organization))
                 found.add(u);
         }
 
