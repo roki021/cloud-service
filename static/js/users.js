@@ -1,4 +1,5 @@
 function getUsers() {
+    window.sessionStorage.setItem("selectedItem", "users");
     $.ajax({
         url: "rest/getUsers",
         type: "GET",

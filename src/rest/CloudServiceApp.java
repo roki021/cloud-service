@@ -47,7 +47,7 @@ public class CloudServiceApp {
         get("/rest/isLogged", (req, res) -> {
             res.type("application/json");
 
-            return "{\"isLogged\": " + isUserLoggedIn(req) + "}";
+            return g.toJson(isUserLoggedIn(req));
         });
 
         get("/rest/logOut", (req, res) -> {
@@ -158,10 +158,10 @@ public class CloudServiceApp {
         });
     }
 
-    public static boolean isUserLoggedIn(Request req) {
+    public static User isUserLoggedIn(Request req) {
         Session ss = req.session(true);
         User loggedUser = ss.attribute("user");
 
-        return loggedUser != null;
+        return loggedUser;
     }
 }
