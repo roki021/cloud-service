@@ -10,6 +10,10 @@ body {
     color: red !important;
 }
 
+.logo-size {
+    width: 40px;
+}
+
 #sidebar-wrapper {
   min-height: 100vh;
   margin-left: -15rem;

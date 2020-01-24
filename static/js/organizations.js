@@ -18,7 +18,44 @@ function getOrganizations() {
 }
 
 function addOrganization() {
+    var formData = getFormData($("#orgAdd"));
+    var jsonData = JSON.stringify(formData);
 
+    $("#orgAdd").find("small").remove();
+    $("#orgAdd").find(".alert").remove();
+
+    var nameInput = $("#nameField");
+
+    if($.trim(nameInput.val()) == "") {
+        nameInput.addClass("border border-danger");
+        var logMsg = $("<small class=\"form-text text-muted log-msg\"></small>");
+        logMsg.text("This field is mandatory");
+        nameInput.parent().append(logMsg);
+    } else {
+        $.ajax({
+            url: "rest/addOrg",
+            type: "POST",
+            data: jsonData,
+            contentType: "application/json",
+            dataType: "json",
+            complete: function(data) {
+                if(data.status == 403) {
+                    response = data.responseJSON;
+                    statusMessageStyle(403, response.message);
+                } else {
+                    response = data.responseJSON;
+
+                    if(!response.added) {
+                        var wrongCred = $("<div class=\"alert alert-danger text-center\" role=\"alert\"></div>");
+                        wrongCred.text("There is already organization with this name");
+                        wrongCred.insertBefore("input[type=button]");
+                    } else {
+                        getOrganizations();
+                    }
+                }
+            }
+        });
+    }
 }
 
 function setUpAddForm() {
@@ -26,12 +63,12 @@ function setUpAddForm() {
     canvas.empty();
     var formHolder = $(`<div class="mt-3 mr-1 ml-1 row justify-content-center"/>`);
     canvas.append(formHolder);
-    var form = $(`<form id="org-add" class="col-sm-8"/>`);
+    var form = $(`<form id="orgAdd" class="col-sm-8"/>`);
     form.append(createInput("text", "name", "Name", "Name", "form-control"));
     form.append(createInput("text", "description", "Description", "Description", "form-control"));
-    form.append(createInput("file", "logo", "Logo", "", "form-control-file"));
+    form.append(createInput("file", "logoUrl", "Logo", "", "form-control-file"));
     form.append(`
-        <button class="btn btn-primary float-right col-sm-auto" onclick="addOrganization()">Add organization</button>
+        <input type="button" class="btn btn-primary float-right col-sm-auto" onclick="addOrganization()" value="Add organization"/>
     `);
 
     formHolder.append(form);
@@ -69,7 +106,7 @@ function createTableRow(org) {
     var row =
     `
         <tr>
-            <td><img alt="..." class="img-thumbnail" src="${org.logo}"/></td>
+            <td><img alt="..." class="logo-size img-thumbnail img-responsive" src="${org.logoUrl}"/></td>
             <td>${org.name}</td>
             <td>${org.description}</td>
             <td><a href="#" onclick=""><i class="fa fa-pencil pr-2"></i></a><a href="#" onclick=""><i class="fa fa-trash-o"></i></a></td>
@@ -91,4 +128,12 @@ function createInput(type, name, labelText, placeholder, inputClass) {
     `
 
     return input;
+}
+
+function getImgBytes() {
+    logoImg = $("#logoUrlField")[0];
+    console.log(logoImg.files);
+
+
+    return logoImg.files[0];
 }
