@@ -146,10 +146,10 @@ public class CloudServiceControler {
         return organizations.remove(key);
     }
 
-    public boolean changeOrganizations(String oldKey, Organization newOrg) {
+    public boolean changeOrganization(String oldKey, Organization newOrg) {
         boolean retVal = false;
         if(newOrg != null) {
-            if(!organizations.containsKey(newOrg.getName())) {
+            if(!organizations.containsKey(newOrg.getName()) || oldKey.equals(newOrg.getName())) {
                 removeOrganization(oldKey);
                 organizations.put(newOrg.getName(), newOrg);
                 retVal = true;
@@ -193,7 +193,7 @@ public class CloudServiceControler {
     public boolean changeVM(String oldKey, VM newVM) {
         boolean retVal = false;
         if(newVM != null) {
-            if(!virtualMachines.containsKey(newVM.getName())) {
+            if(!virtualMachines.containsKey(newVM.getName()) || oldKey.equals(newVM.getName())) {
                 removeVM(oldKey);
                 virtualMachines.put(newVM.getName(), newVM);
                 retVal = true;
@@ -237,7 +237,7 @@ public class CloudServiceControler {
     public boolean changeDisc(String oldKey, Disc newDisc) {
         boolean retVal = false;
         if(newDisc != null) {
-            if(!discs.containsKey(newDisc.getName())) {
+            if(!discs.containsKey(newDisc.getName()) || oldKey.equals(newDisc.getName())) {
                 removeDisc(oldKey);
                 discs.put(newDisc.getName(), newDisc);
                 retVal = true;
@@ -281,7 +281,8 @@ public class CloudServiceControler {
     public boolean changeVMCategory(String oldKey, VMCategory newVMCategory) {
         boolean retVal = false;
         if(newVMCategory != null) {
-            if(!vmCategories.containsKey(newVMCategory.getName())) {
+            if(!vmCategories.containsKey(newVMCategory.getName())
+                    || oldKey.equals(newVMCategory.getName())) {
                 removeVMCategory(oldKey);
                 vmCategories.put(newVMCategory.getName(), newVMCategory);
                 retVal = true;

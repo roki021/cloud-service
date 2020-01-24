@@ -190,6 +190,51 @@ public class CloudServiceApp {
 
             return responseStatus(res, 403, "Unauthorized access");
         });
+
+        post("/rest/getOrg", (req, res) -> {
+            res.type("application/json");
+            Session ss = req.session(true);
+            Organization org = null;
+            try {
+                org = g.fromJson(req.body(), Organization.class);
+                ss.attribute("orgToChange", org.getName());
+            } catch(Exception ex) {}
+            User user = isUserLoggedIn(req);
+
+            if(user != null) {
+                if(user.getRole() == User.Role.SUPER_ADMIN) {
+                    if(org != null) {
+                        return g.toJson(cloudService.getOrganization(org.getName()));
+                    }
+                    else {
+                        return responseStatus(res, 400, "Bad request");
+                    }
+                }
+            }
+
+            return responseStatus(res, 403, "Unauthorized access");
+        });
+
+        post("/rest/editOrg", (req, res) -> {
+            res.type("application/json");
+            Organization org = null;
+            try {
+                org = g.fromJson(req.body(), Organization.class);
+            } catch(Exception ex) {}
+            User user = isUserLoggedIn(req);
+
+            if(user != null) {
+                if(user.getRole() == User.Role.SUPER_ADMIN) {
+                    String key = req.session(true).attribute("orgToChange");
+
+                    if(key != null) {
+                        return "{\"added\":" + cloudService.changeOrganization(key, org) + "}";
+                    }
+                }
+            }
+
+            return responseStatus(res, 403, "Unauthorized access");
+        });
     }
 
     public static User isUserLoggedIn(Request req) {

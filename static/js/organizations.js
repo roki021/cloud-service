@@ -17,7 +17,7 @@ function getOrganizations() {
     });
 }
 
-function addOrganization() {
+function addOrganization(route) {
     var formData = getFormData($("#orgAdd"));
     var jsonData = JSON.stringify(formData);
 
@@ -33,7 +33,7 @@ function addOrganization() {
         nameInput.parent().append(logMsg);
     } else {
         $.ajax({
-            url: "rest/addOrg",
+            url: route,
             type: "POST",
             data: jsonData,
             contentType: "application/json",
@@ -58,7 +58,32 @@ function addOrganization() {
     }
 }
 
-function setUpAddForm() {
+function setUpEditForm(orgName) {
+    setUpAddForm("Change organization", "rest/editOrg");
+    var jsonData = JSON.stringify({name: orgName});
+    $.ajax({
+        url: "rest/getOrg",
+        type: "POST",
+        contentType: "application/json",
+        data: jsonData,
+        dataType: "json",
+        complete: function(data) {
+            if(data.status == 403) {
+                response = data.responseJSON;
+                statusMessageStyle(403, response.message);
+            } else {
+                org = data.responseJSON;
+
+                $("#nameField").val(org.name);
+                $("#descriptionField").val(org.description);
+
+                window.sessionStorage.setItem("oldOrg", orgName);
+            }
+        }
+    });
+}
+
+function setUpAddForm(buttonText, route) {
     var canvas = $("#canvas");
     canvas.empty();
     var formHolder = $(`<div class="mt-3 mr-1 ml-1 row justify-content-center"/>`);
@@ -68,7 +93,7 @@ function setUpAddForm() {
     form.append(createInput("text", "description", "Description", "Description", "form-control"));
     form.append(createInput("file", "logoUrl", "Logo", "", "form-control-file"));
     form.append(`
-        <input type="button" class="btn btn-primary float-right col-sm-auto" onclick="addOrganization()" value="Add organization"/>
+        <input type="button" class="btn btn-primary float-right col-sm-auto" onclick="addOrganization('${route}')" value="${buttonText}"/>
     `);
 
     formHolder.append(form);
@@ -98,7 +123,8 @@ function setUpOrgView(canvas, organizations) {
     div.append(table);
     canvas.append(div);
 
-    var addOrgButton = `<button class="mr-sm-1 float-right btn btn-primary col-sm-auto" onclick="setUpAddForm()">Add Organization</button>`;
+    var addOrgButton = `<button class="mr-sm-1 float-right btn btn-primary col-sm-auto"
+     onclick="setUpAddForm('Add organization', 'rest/addOrg')">Add Organization</button>`;
     canvas.append(addOrgButton);
 }
 
@@ -109,7 +135,7 @@ function createTableRow(org) {
             <td><img alt="..." class="logo-size img-thumbnail img-responsive" src="${org.logoUrl}"/></td>
             <td>${org.name}</td>
             <td>${org.description}</td>
-            <td><a href="#" onclick=""><i class="fa fa-pencil pr-2"></i></a><a href="#" onclick=""><i class="fa fa-trash-o"></i></a></td>
+            <td><a href="#" onclick="setUpEditForm('${org.name}')"><i class="fa fa-pencil pr-2"></i></a><a href="#" onclick=""><i class="fa fa-trash-o"></i></a></td>
         </tr>
     `;
 
