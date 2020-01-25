@@ -108,25 +108,39 @@ public class CloudServiceApp {
             }
         });
 
-        get("/rest/addUser", (req, res) -> {
+        post("/rest/addUser", (req, res) -> {
             res.type("application/json");
             Session ss = req.session();
             User user = ss.attribute("user");
+            String msg = "false";
+
+            System.out.println(res.body());
 
             if(user == null) {
                 res.status(403);
-                return "{\"access\": Unauthorized}";
             }
             else if(user.getRole() == User.Role.SUPER_ADMIN) {
-                return g.toJson(cloudService.getAllUsers());
+                User u;
+                try {
+                    u = g.fromJson(res.body(), User.class);
+                    System.out.println(u.getEmail());
+                    cloudService.addUser(u);
+                    msg = "true";
+                } catch(Exception ex) {
+                    msg = "false";
+                }
             }
             else if(user.getRole() == User.Role.ADMIN) {
-                return g.toJson(cloudService.getUsers(user.getOrganization()));
+                User u = g.fromJson(res.body(), User.class);
+                u.setOrganization(user.getOrganization());
+                cloudService.addUser(u);
+                msg = "true";
             }
             else {
                 res.status(403);
-                return "{\"access\": Unauthorized}";
             }
+
+            return msg;
         });
 
         get("/rest/removeUser", (req, res) -> {
