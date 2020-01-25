@@ -126,7 +126,7 @@ function setUpPageByUser(user) {
             sidebarItems.append(createSidebarItem("VM categories", "vmcats", function() {$("#canvas").empty();}));
         break;
         case "ADMIN":
-            sidebarItems.append(createSidebarItem("Organization", "orgs", function() {$("#canvas").empty();}));
+            sidebarItems.append(createSidebarItem("Organization", "orgs", getUserOrganization));
             sidebarItems.append(createSidebarItem("Users", "users", getUsers));
         break;
     }

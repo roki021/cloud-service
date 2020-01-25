@@ -58,8 +58,72 @@ function addOrganization(route) {
     }
 }
 
+function editOwnOrganization(route) {
+    var formData = getFormData($("#orgAdd"));
+    var jsonData = JSON.stringify(formData);
+
+    $("#orgAdd").find("small").remove();
+    $("#orgAdd").find(".alert").remove();
+
+    var nameInput = $("#nameField");
+
+    if($.trim(nameInput.val()) == "") {
+        nameInput.addClass("border border-danger");
+        var logMsg = $("<small class=\"form-text text-muted log-msg\"></small>");
+        logMsg.text("This field is mandatory");
+        nameInput.parent().append(logMsg);
+    } else {
+        $.ajax({
+            url: route,
+            type: "POST",
+            data: jsonData,
+            contentType: "application/json",
+            dataType: "json",
+            complete: function(data) {
+                if(data.status == 403) {
+                    response = data.responseJSON;
+                    statusMessageStyle(403, response.message);
+                } else {
+                    response = data.responseJSON;
+
+                    if(!response.added) {
+                        var wrongCred = $("<div class=\"alert alert-danger text-center\" role=\"alert\"></div>");
+                        wrongCred.text("Something went wrong with data editing");
+                        wrongCred.insertBefore("input[type=button]");
+                    } else {
+                        var rightCred = $("<div class=\"alert alert-success text-center\" role=\"alert\"></div>");
+                        rightCred.text("Successful editing");
+                        rightCred.insertBefore("input[type=button]");
+                    }
+                }
+            }
+        });
+    }
+}
+
+function getUserOrganization() {
+    $.ajax({
+        url: "rest/getUserOrg",
+        type: "GET",
+        dataType: "json",
+        complete: function(data) {
+            if(data.status == 403) {
+                response = data.responseJSON;
+                statusMessageStyle(403, response.message);
+            } else {
+                org = data.responseJSON;
+                if(org != null) {
+                    setUpAddForm("Edit organization", "editOwnOrganization", "rest/editOrg");
+                    $("#nameField").val(org.name);
+                    $("#descriptionField").val(org.description);
+                }
+            }
+        }
+    });
+}
+
 function setUpEditForm(orgName) {
-    setUpAddForm("Change organization", "rest/editOrg");
+    setUpAddForm("Edit organization", "addOrganization", "rest/editOrg");
     var jsonData = JSON.stringify({name: orgName});
     $.ajax({
         url: "rest/getOrg",
@@ -76,14 +140,12 @@ function setUpEditForm(orgName) {
 
                 $("#nameField").val(org.name);
                 $("#descriptionField").val(org.description);
-
-                window.sessionStorage.setItem("oldOrg", orgName);
             }
         }
     });
 }
 
-function setUpAddForm(buttonText, route) {
+function setUpAddForm(buttonText, func, route) {
     var canvas = $("#canvas");
     canvas.empty();
     var formHolder = $(`<div class="mt-3 mr-1 ml-1 row justify-content-center"/>`);
@@ -93,7 +155,7 @@ function setUpAddForm(buttonText, route) {
     form.append(createInput("text", "description", "Description", "Description", "form-control"));
     form.append(createInput("file", "logoUrl", "Logo", "", "form-control-file"));
     form.append(`
-        <input type="button" class="btn btn-primary float-right col-sm-auto" onclick="addOrganization('${route}')" value="${buttonText}"/>
+        <input type="button" class="btn btn-primary float-right col-sm-auto" onclick="${func}('${route}')" value="${buttonText}"/>
     `);
 
     formHolder.append(form);
@@ -124,7 +186,7 @@ function setUpOrgView(canvas, organizations) {
     canvas.append(div);
 
     var addOrgButton = `<button class="mr-sm-1 float-right btn btn-primary col-sm-auto"
-     onclick="setUpAddForm('Add organization', 'rest/addOrg')">Add Organization</button>`;
+     onclick="setUpAddForm('Add organization', 'addOrganization', 'rest/addOrg')">Add Organization</button>`;
     canvas.append(addOrgButton);
 }
 

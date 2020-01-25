@@ -33,7 +33,7 @@ public class CloudServiceControler {
 
     public CloudServiceControler() {
         users = new HashMap<String, User>();
-        users.put("mika@gmail.com", new User("mika@gmail.com", "mika", "mika", "mikic", null, User.Role.ADMIN));
+        users.put("mika@gmail.com", new User("mika@gmail.com", "mika", "mika", "mikic", "org1", User.Role.ADMIN));
         users.put("pera@gmail.com", new User("pera@gmail.com", "pera", "pera", "peric", null, User.Role.USER));
         organizations = new HashMap<String, Organization>();
         virtualMachines = new HashMap<String, VM>();
@@ -115,6 +115,16 @@ public class CloudServiceControler {
         return retVal;
     }
 
+    public void changeUsersOrganization(String oldOrg, String newOrg) {
+        for(User user : users.values()) {
+            if(user.getOrganization() != null) {
+                if(user.getOrganization().equals(oldOrg)) {
+                    user.setOrganization(newOrg);
+                }
+            }
+        }
+    }
+
     /* ********************* ORGANIZATION ********************* */
 
     public Organization getOrganization(String key) {
@@ -152,6 +162,7 @@ public class CloudServiceControler {
             if(!organizations.containsKey(newOrg.getName()) || oldKey.equals(newOrg.getName())) {
                 removeOrganization(oldKey);
                 organizations.put(newOrg.getName(), newOrg);
+                changeUsersOrganization(oldKey, newOrg.getName());
                 retVal = true;
             }
         }

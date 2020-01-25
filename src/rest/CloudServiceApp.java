@@ -231,6 +231,22 @@ public class CloudServiceApp {
                         return "{\"added\":" + cloudService.changeOrganization(key, org) + "}";
                     }
                 }
+                else if(user.getRole() == User.Role.ADMIN) {
+                    if(user.getOrganization() != null) {
+                        return "{\"added\":" + cloudService.changeOrganization(user.getOrganization(), org) + "}";
+                    }
+                }
+            }
+
+            return responseStatus(res, 403, "Unauthorized access");
+        });
+
+        get("/rest/getUserOrg", (req, res) -> {
+            res.type("application/json");
+            User user = isUserLoggedIn(req);
+
+            if(user != null) {
+                return g.toJson(cloudService.getOrganization(user.getOrganization()));
             }
 
             return responseStatus(res, 403, "Unauthorized access");
