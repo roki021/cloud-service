@@ -2,6 +2,7 @@ package controler;
 
 import beans.*;
 
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -158,9 +159,21 @@ public class CloudServiceControler {
 
     public boolean changeOrganization(String oldKey, Organization newOrg) {
         boolean retVal = false;
+        String path = "./static/";
         if(newOrg != null) {
             if(!organizations.containsKey(newOrg.getName()) || oldKey.equals(newOrg.getName())) {
+                String oldSrc = "logos/" + oldKey + ".jpg";
+                if(!newOrg.getName().equals(oldKey)) {
+                    String newSrc = "logos/" + newOrg.getName() + ".jpg";
+                    changeImageName(path + oldSrc, path + newSrc);
+                }
+                else {
+                    if(newOrg.getLogoUrl().equals("logos/users.png")) {
+                        newOrg.setLogoUrl(organizations.get(newOrg.getName()).getLogoUrl());
+                    }
+                }
                 removeOrganization(oldKey);
+                extractImageFromBytes(newOrg);
                 organizations.put(newOrg.getName(), newOrg);
                 changeUsersOrganization(oldKey, newOrg.getName());
                 retVal = true;
@@ -168,6 +181,28 @@ public class CloudServiceControler {
         }
 
         return retVal;
+    }
+
+    public boolean changeImageName(String oldName, String newName) {
+        File img1 = new File(oldName);
+        return img1.renameTo(new File(newName));
+    }
+
+    public void extractImageFromBytes(Organization org) {
+        String imgPath = "logos/" + org.getName() + ".jpg";
+        if(!org.getLogoUrl().equals(imgPath)) {
+            try(OutputStream writer = new FileOutputStream("./static/" + imgPath)) {
+                StringReader reader = new StringReader(org.getLogoUrl());
+                int k = 0;
+                while((k = reader.read()) != -1){
+                    writer.write(k);
+                }
+                org.setLogoUrl(imgPath);
+                System.out.println("Image extracted successfully");
+            } catch (IOException ioe) {
+                ioe.printStackTrace();
+            }
+        }
     }
 
     /* ********************* VM ********************* */

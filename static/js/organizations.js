@@ -7,7 +7,7 @@ function getOrganizations() {
             var canvas = $("#canvas");
             canvas.empty();
 
-            if(data.status == 403) {
+            if(data.status === 403) {
                 response = data.responseJSON;
                 statusMessageStyle(403, response.message);
             } else {
@@ -19,7 +19,6 @@ function getOrganizations() {
 
 function addOrganization(route) {
     var formData = getFormData($("#orgAdd"));
-    var jsonData = JSON.stringify(formData);
 
     $("#orgAdd").find("small").remove();
     $("#orgAdd").find(".alert").remove();
@@ -32,29 +31,32 @@ function addOrganization(route) {
         logMsg.text("This field is mandatory");
         nameInput.parent().append(logMsg);
     } else {
-        $.ajax({
-            url: route,
-            type: "POST",
-            data: jsonData,
-            contentType: "application/json",
-            dataType: "json",
-            complete: function(data) {
-                if(data.status == 403) {
-                    response = data.responseJSON;
-                    statusMessageStyle(403, response.message);
-                } else {
-                    response = data.responseJSON;
-
-                    if(!response.added) {
-                        var wrongCred = $("<div class=\"alert alert-danger text-center\" role=\"alert\"></div>");
-                        wrongCred.text("There is already organization with this name");
-                        wrongCred.insertBefore("input[type=button]");
+        getImgBytes(function(jsonData) {
+            console.log(jsonData);
+            $.ajax({
+                url: route,
+                type: "POST",
+                data: jsonData,
+                contentType: "application/json",
+                dataType: "json",
+                complete: function(data) {
+                    if(data.status === 403) {
+                        response = data.responseJSON;
+                        statusMessageStyle(403, response.message);
                     } else {
-                        getOrganizations();
+                        response = data.responseJSON;
+
+                        if(!response.added) {
+                            var wrongCred = $("<div class=\"alert alert-danger text-center\" role=\"alert\"></div>");
+                            wrongCred.text("There is already organization with this name");
+                            wrongCred.insertBefore("input[type=button]");
+                        } else {
+                            getOrganizations();
+                        }
                     }
                 }
-            }
-        });
+            });
+        }, formData);
     }
 }
 
@@ -80,7 +82,7 @@ function editOwnOrganization(route) {
             contentType: "application/json",
             dataType: "json",
             complete: function(data) {
-                if(data.status == 403) {
+                if(data.status === 403) {
                     response = data.responseJSON;
                     statusMessageStyle(403, response.message);
                 } else {
@@ -107,13 +109,13 @@ function getUserOrganization() {
         type: "GET",
         dataType: "json",
         complete: function(data) {
-            if(data.status == 403) {
+            if(data.status === 403) {
                 response = data.responseJSON;
                 statusMessageStyle(403, response.message);
             } else {
                 org = data.responseJSON;
                 if(org != null) {
-                    setUpAddForm("Edit organization", "editOwnOrganization", "rest/editOrg");
+                    setUpAddForm("Save changes", "editOwnOrganization", "rest/editOrg");
                     $("#nameField").val(org.name);
                     $("#descriptionField").val(org.description);
                 }
@@ -123,7 +125,7 @@ function getUserOrganization() {
 }
 
 function setUpEditForm(orgName) {
-    setUpAddForm("Edit organization", "addOrganization", "rest/editOrg");
+    setUpAddForm("Save changes", "addOrganization", "rest/editOrg");
     var jsonData = JSON.stringify({name: orgName});
     $.ajax({
         url: "rest/getOrg",
@@ -132,7 +134,7 @@ function setUpEditForm(orgName) {
         data: jsonData,
         dataType: "json",
         complete: function(data) {
-            if(data.status == 403) {
+            if(data.status === 403) {
                 response = data.responseJSON;
                 statusMessageStyle(403, response.message);
             } else {
@@ -218,10 +220,23 @@ function createInput(type, name, labelText, placeholder, inputClass) {
     return input;
 }
 
-function getImgBytes() {
+function getImgBytes(callback, data) {
     logoImg = $("#logoUrlField")[0];
     console.log(logoImg.files);
+    if(logoImg.files.length != 0) {
+        if(logoImg.files[0].type.includes("image") && (logoImg.files[0].size / 1048576.0) < 1.0) {
+            var reader = new FileReader();
+            reader.onload = function(evt) {
+                data.logoUrl = evt.target.result;
+                callback(JSON.stringify(data));
+            };
 
+            reader.readAsBinaryString(logoImg.files[0]);
+            return;
+        } else {
 
-    return logoImg.files[0];
+        }
+    }
+
+    callback(JSON.stringify(data));
 }
