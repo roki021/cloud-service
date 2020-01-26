@@ -154,7 +154,7 @@ function setUpAddForm(buttonText, func, route) {
     canvas.append(formHolder);
     var form = $(`<form id="orgAdd" class="col-sm-8"/>`);
     form.append(createInput("text", "name", "Name", "Name", "form-control"));
-    form.append(createInput("text", "description", "Description", "Description", "form-control"));
+    form.append(createTextArea("text", "description", "Description", "Description", "form-control"));
     form.append(createInput("file", "logoUrl", "Logo", "", "form-control-file"));
     form.append(`
         <input type="button" class="btn btn-primary float-right col-sm-auto" onclick="${func}('${route}')" value="${buttonText}"/>
@@ -171,10 +171,10 @@ function setUpOrgView(canvas, organizations) {
     `
         <thead>
             <tr>
-                <th>Logo</th>
+                <th class="action-th">Logo</th>
                 <th>Name</th>
                 <th>Description</th>
-                <th>Actions</th>
+                <th class="action-th">Actions</th>
             </tr>
         </thead>
     `);
@@ -193,21 +193,36 @@ function setUpOrgView(canvas, organizations) {
 }
 
 function createTableRow(org) {
+    var desc = $.trim(org.description) == "" ? "-" : org.description;
     var row =
     `
         <tr>
             <td>
                 <div class="logo-size">
-                    <img alt="..." class="img-thumbnail img-responsive" src="${org.logoUrl}"/>
+                    <img alt="..." class="img-fluid img-responsive" src="${org.logoUrl}"/>
                 </div>
             </td>
             <td>${org.name}</td>
-            <td>${org.description}</td>
-            <td class="h3"><a class="pr-sm-1" href="#" onclick="setUpEditForm('${org.name}')"><i class="fa fa-pencil pr-2"></i></a><a href="#" onclick=""><i class="fa fa-trash-o"></i></a></td>
+            <td>${desc}</td>
+            <td><a class="pr-sm-1" href="#" onclick="setUpEditForm('${org.name}')"><i class="fa fa-pencil pr-2"></i></a><a href="#" onclick=""><i class="fa fa-trash-o"></i></a></td>
         </tr>
     `;
 
     return row;
+}
+
+function createTextArea(type, name, labelText, placeholder, inputClass) {
+    var textArea =
+    `
+        <div class="form-group row">
+            <label for="${name}Field" class="col-sm-2 col-form-label">${labelText}</label>
+            <div class="col-sm-10 pt-sm-1">
+                <textarea rows="10" class="${inputClass}" id="${name}Field" name="${name}" placeholder="${placeholder}"></textarea>
+            </div>
+        </div>
+    `
+
+    return textArea;
 }
 
 function createInput(type, name, labelText, placeholder, inputClass) {

@@ -2,3 +2,6 @@
 /.idea
 *.iml
 /out
+# temporary ingored files
+/data
+/data/logos/*.jpg

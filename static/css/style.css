@@ -12,14 +12,16 @@ body {
 
 .table > tbody > tr > td {
      vertical-align: middle;
-     word-wrap: break-word;
-     overflow: hidden;
-     white-space: normal;
+     overflow: auto;
      max-width: 0;
 }
 
 .table > thead > tr > th {
     width: 25%;
+}
+
+.action-th {
+    width: 5% !important;
 }
 
 .logo-size {

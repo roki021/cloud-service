@@ -1,6 +1,8 @@
 package controler;
 
 import beans.*;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import java.io.*;
 import java.util.*;
@@ -8,6 +10,8 @@ import java.util.*;
 public class CloudServiceControler {
 
     private static final String LOGO_PATH = "logos";
+    private static final String DATA_PATH = "./data";
+    private static final String ORG_FILE = "/organizations.json";
 
     private HashMap<String, User> users;
     private HashMap<String, Organization> organizations;
@@ -15,6 +19,7 @@ public class CloudServiceControler {
     private HashMap<String, VMCategory> vmCategories;
     private HashMap<String, Disc> discs;
     private HashMap<String, User> superAdmins;
+    private Gson g;
 
     private static String generateRandomString() {
         int leftLimit = 48; // numeral '0'
@@ -44,17 +49,39 @@ public class CloudServiceControler {
         }
     }
 
+    private void loadFiles() {
+        loadOrganizations(DATA_PATH + ORG_FILE);
+    }
+
+    private void saveFile(Collection<?> collection, String filePath) {
+        try(FileWriter fw = new FileWriter(filePath)) {
+            g.toJson(collection, fw);
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+            System.out.println("Data not saved");
+        }
+    }
+
     public CloudServiceControler() {
         users = new HashMap<String, User>();
         users.put("mika@gmail.com", new User("mika@gmail.com", "mika", "mika", "mikic", "org1", User.Role.ADMIN));
         users.put("pera@gmail.com", new User("pera@gmail.com", "pera", "pera", "peric", null, User.Role.USER));
         organizations = new HashMap<String, Organization>();
-        organizations.put("org1", new Organization("org1", "org1", "logos/users.png"));
         virtualMachines = new HashMap<String, VM>();
         vmCategories = new HashMap<String, VMCategory>();
         discs = new HashMap<String, Disc>();
         superAdmins = new HashMap<String, User>();
 
+        g = new GsonBuilder().setPrettyPrinting().create();
+
+        File dataFolder = new File(DATA_PATH);
+        if(!dataFolder.exists())
+            if (dataFolder.mkdir())
+                System.out.println("Directory is created!");
+            else
+                System.out.println("Failed to create directory!");
+
+        loadFiles();
         setUpSuperAdmins();
     }
 
@@ -152,6 +179,19 @@ public class CloudServiceControler {
 
     /* ********************* ORGANIZATION ********************* */
 
+    private void loadOrganizations(String filePath) {
+        if(new File(filePath).exists()) {
+            try(FileReader fr = new FileReader(filePath)) {
+                for(Organization org : g.fromJson(fr, Organization[].class)) {
+                    organizations.put(org.getName(), org);
+                }
+            } catch (IOException ioe) {
+                ioe.printStackTrace();
+                System.out.println("Data not loaded");
+            }
+        }
+    }
+
     public Organization getOrganization(String key) {
         Organization org = null;
 
@@ -171,6 +211,7 @@ public class CloudServiceControler {
             if(!organizations.containsKey(org.getName())) {
                 setUpLogo(org);
                 organizations.put(org.getName(), org);
+                saveFile(organizations.values(), DATA_PATH + ORG_FILE);
                 retVal = true;
             }
         }
@@ -191,6 +232,7 @@ public class CloudServiceControler {
                 removeOrganization(oldKey);
                 organizations.put(newOrg.getName(), newOrg);
                 changeUsersOrganization(oldKey, newOrg.getName());
+                saveFile(organizations.values(), DATA_PATH + ORG_FILE);
                 retVal = true;
             }
         }

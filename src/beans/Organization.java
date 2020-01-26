@@ -6,7 +6,7 @@ import java.util.List;
 public class Organization {
     private String name;
     private String description;
-    private String logoUrl; // if logoUrl is null then default logo is set
+    private String logoUrl;
     private List<String> users;
     private List<String> resources;
 
