@@ -4,4 +4,4 @@
 /out
 # temporary ingored files
 /data
-/data/static/logos/*.jpg
+/static/logos/*.jpg
