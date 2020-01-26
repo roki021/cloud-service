@@ -37,6 +37,7 @@ public class CloudServiceControler {
         users.put("mika@gmail.com", new User("mika@gmail.com", "mika", "mika", "mikic", "org1", User.Role.ADMIN));
         users.put("pera@gmail.com", new User("pera@gmail.com", "pera", "pera", "peric", null, User.Role.USER));
         organizations = new HashMap<String, Organization>();
+        organizations.put("org1", new Organization("org1", "org1", ""));
         virtualMachines = new HashMap<String, VM>();
         vmCategories = new HashMap<String, VMCategory>();
         discs = new HashMap<String, Disc>();
@@ -111,6 +112,17 @@ public class CloudServiceControler {
                 users.put(newUser.getEmail(), newUser);
                 retVal = true;
             }
+        }
+
+        return retVal;
+    }
+
+    public boolean changeUserCreditials(User newUser) {
+        boolean retVal = false;
+        if(newUser != null) {
+            removeUser(newUser.getEmail());
+            users.put(newUser.getEmail(), newUser);
+            retVal = true;
         }
 
         return retVal;

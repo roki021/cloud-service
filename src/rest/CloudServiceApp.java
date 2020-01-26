@@ -3,6 +3,7 @@ package rest;
 import beans.Organization;
 import beans.User;
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import controler.CloudServiceControler;
 import spark.Request;
 import spark.Response;
@@ -89,6 +90,47 @@ public class CloudServiceApp {
            }
         });
 
+        get("/rest/getUser", (req, res) -> {
+           res.type("application/json");
+            Session ss = req.session();
+            User user = ss.attribute("user");
+            String email = req.queryParams("email");
+
+            if(user == null) {
+                res.status(403);
+                return "{\"access\": Unauthorized}";
+            }
+            else if(user.getRole() == User.Role.SUPER_ADMIN) {
+                User u = cloudService.getUser(email);
+                if(u != null) {
+                    return g.toJson(u);
+                }
+                else {
+                    res.status(404);
+                    return "{\"user\": \"not found\"}";
+                }
+            }
+            else if(user.getRole() == User.Role.ADMIN) {
+                User u = cloudService.getUser(email);
+                if(u != null) {
+                    if(u.getOrganization().equals(user.getOrganization()))
+                        return g.toJson(u);
+                    else {
+                        res.status(403);
+                        return "{\"access\": Unauthorized}";
+                    }
+                }
+                else {
+                    res.status(404);
+                    return "{\"user\": \"not found\"}";
+                }
+            }
+            else {
+                res.status(403);
+                return "{\"access\": Unauthorized}";
+            }
+        });
+
         get("/rest/getUserRole", (req, res) -> {
             res.type("application/json");
             Session ss = req.session();
@@ -114,7 +156,39 @@ public class CloudServiceApp {
             User user = ss.attribute("user");
             String msg = "false";
 
-            System.out.println(res.body());
+            if(user == null) {
+                res.status(403);
+            }
+            else if(user.getRole() == User.Role.SUPER_ADMIN) {
+                User u;
+                try {
+                    u = g.fromJson(req.body(), User.class);
+                    cloudService.addUser(u);
+                    msg = "true";
+                } catch(Exception ex) {
+                }
+            }
+            else if(user.getRole() == User.Role.ADMIN) {
+                User u;
+                try {
+                    u = g.fromJson(req.body(), User.class);
+                    u.setOrganization(user.getOrganization());
+                    cloudService.addUser(u);
+                    msg = "true";
+                } catch(Exception ex) {
+                }
+            }
+            else {
+                res.status(403);
+            }
+            return "{\"added\": " + msg;
+        });
+
+        post("/rest/editUser", (req, res) -> {
+            res.type("application/json");
+            Session ss = req.session();
+            User user = ss.attribute("user");
+            String success = "false";
 
             if(user == null) {
                 res.status(403);
@@ -122,25 +196,40 @@ public class CloudServiceApp {
             else if(user.getRole() == User.Role.SUPER_ADMIN) {
                 User u;
                 try {
-                    u = g.fromJson(res.body(), User.class);
-                    System.out.println(u.getEmail());
-                    cloudService.addUser(u);
-                    msg = "true";
-                } catch(Exception ex) {
-                    msg = "false";
+                    u = g.fromJson(req.body(), User.class);
+                    System.out.println(u);
+                    User userEdit = cloudService.getUser(u.getEmail());
+                    if(userEdit != null) {
+                        u.setOrganization(userEdit.getOrganization());
+                        u.setEmail(userEdit.getEmail());
+                        if(cloudService.changeUserCreditials(u)) {
+                            success = "true";
+                        }
+
+                    }
+                } catch (Exception e) {
+                    res.status(404);
                 }
             }
             else if(user.getRole() == User.Role.ADMIN) {
-                User u = g.fromJson(res.body(), User.class);
-                u.setOrganization(user.getOrganization());
-                cloudService.addUser(u);
-                msg = "true";
+                User u;
+                try {
+                    u = g.fromJson(req.body(), User.class);
+                    User userEdit = cloudService.getUser(u.getEmail());
+                    if(userEdit != null && userEdit.getOrganization().equals(user.getOrganization())) {
+                        u.setOrganization(userEdit.getOrganization());
+                        u.setEmail(userEdit.getEmail());
+                        if(cloudService.changeUserCreditials(u))
+                            success = "true";
+                    }
+                } catch (Exception e) {
+                    res.status(404);
+                }
             }
             else {
                 res.status(403);
             }
-
-            return msg;
+            return "{\"success\": " + success;
         });
 
         get("/rest/removeUser", (req, res) -> {
@@ -152,22 +241,29 @@ public class CloudServiceApp {
 
             if(user == null) {
                 res.status(403);
-                success = "false";
             }
             else if(user.getRole() == User.Role.SUPER_ADMIN) {
-                cloudService.removeUser(email);
-                success = "true";
-            }
-            else if(user.getRole() == User.Role.ADMIN) {
-                if(cloudService.getUser(email).getOrganization().equals(user.getOrganization())) {
+                if(user.getEmail().equals(email)) {
+                    res.status(400);
+                }
+                else {
                     cloudService.removeUser(email);
                     success = "true";
                 }
-                success = "false";
+            }
+            else if(user.getRole() == User.Role.ADMIN) {
+                if(user.getEmail().equals(email)) {
+                    res.status(400);
+                }
+                else {
+                    if (cloudService.getUser(email).getOrganization().equals(user.getOrganization())) {
+                        cloudService.removeUser(email);
+                        success = "true";
+                    }
+                }
             }
             else {
                 res.status(403);
-                success = "false";
             }
 
             return "{\"success\": " + success + "}";
