@@ -248,8 +248,14 @@ function editUserFill(email) {
                 $("#passwordField").val(response.password);
                 $("#firstNameField").val(response.firstName);
                 $("#lastNameField").val(response.lastName);
-                $("#organizationField").val(response.organization);
-                $("#organizationField").prop('readonly', true);
+                console.log(response.organization);
+                if(response.organization == undefined)
+                    response.organization = "-";
+                var org =
+                `
+                <input readonly type="text" name="organization" class="form-control" value="${response.organization}" id="orgField">
+                `;
+                $("#organizationSelect").replaceWith(org);
                 $("#roleField").val(response.role);
             }
         }

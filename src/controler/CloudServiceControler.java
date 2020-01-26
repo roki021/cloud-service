@@ -12,6 +12,8 @@ public class CloudServiceControler {
     private static final String LOGO_PATH = "logos";
     private static final String DATA_PATH = "./data";
     private static final String ORG_FILE = "/organizations.json";
+    private static final String USERS_FILE = "/users.json";
+
 
     private HashMap<String, User> users;
     private HashMap<String, Organization> organizations;
@@ -51,6 +53,7 @@ public class CloudServiceControler {
 
     private void loadFiles() {
         loadOrganizations(DATA_PATH + ORG_FILE);
+        loadUsers(DATA_PATH + USERS_FILE);
     }
 
     private void saveFile(Collection<?> collection, String filePath) {
@@ -64,8 +67,6 @@ public class CloudServiceControler {
 
     public CloudServiceControler() {
         users = new HashMap<String, User>();
-        users.put("mika@gmail.com", new User("mika@gmail.com", "mika", "mika", "mikic", "org1", User.Role.ADMIN));
-        users.put("pera@gmail.com", new User("pera@gmail.com", "pera", "pera", "peric", null, User.Role.USER));
         organizations = new HashMap<String, Organization>();
         virtualMachines = new HashMap<String, VM>();
         vmCategories = new HashMap<String, VMCategory>();
@@ -86,6 +87,19 @@ public class CloudServiceControler {
     }
 
     /* ********************* USER ********************* */
+
+    private void loadUsers(String filePath) {
+        if(new File(filePath).exists()) {
+            try(FileReader fr = new FileReader(filePath)) {
+                for(User user : g.fromJson(fr, User[].class)) {
+                    users.put(user.getEmail(), user);
+                }
+            } catch (IOException ioe) {
+                ioe.printStackTrace();
+                System.out.println("Data not loaded");
+            }
+        }
+    }
 
     public boolean checkUserCredentials(User user) {
         if(user != null) {
@@ -131,6 +145,9 @@ public class CloudServiceControler {
             if(!users.containsKey(user.getEmail()) &&
                     !superAdmins.containsKey(user.getEmail())) {
                 users.put(user.getEmail(), user);
+                saveFile(users.values(), DATA_PATH + USERS_FILE);
+                organizations.get(user.getOrganization()).addUser(user.getEmail());
+                saveFile(organizations.values(), DATA_PATH + ORG_FILE);
                 retVal = true;
             }
         }
@@ -139,7 +156,11 @@ public class CloudServiceControler {
     }
 
     public User removeUser(String key) {
-        return users.remove(key);
+        User user = users.remove(key);
+        saveFile(users.values(), DATA_PATH + USERS_FILE);
+        organizations.get(user.getOrganization()).removeUser(user.getEmail());
+        saveFile(organizations.values(), DATA_PATH + ORG_FILE);
+        return user;
     }
 
     public boolean changeUser(String oldKey, User newUser) {
@@ -149,6 +170,7 @@ public class CloudServiceControler {
                     !superAdmins.containsKey(newUser.getEmail())) {
                 removeUser(oldKey);
                 users.put(newUser.getEmail(), newUser);
+                saveFile(users.values(), DATA_PATH + USERS_FILE);
                 retVal = true;
             }
         }
@@ -161,6 +183,7 @@ public class CloudServiceControler {
         if(newUser != null) {
             removeUser(newUser.getEmail());
             users.put(newUser.getEmail(), newUser);
+            saveFile(users.values(), DATA_PATH + USERS_FILE);
             retVal = true;
         }
 
