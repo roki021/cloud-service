@@ -169,6 +169,7 @@ public class CloudServiceControler {
         boolean retVal = false;
         if(org != null) {
             if(!organizations.containsKey(org.getName())) {
+                setUpLogo(org);
                 organizations.put(org.getName(), org);
                 retVal = true;
             }
