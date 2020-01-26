@@ -13,7 +13,6 @@ public class Organization {
     public Organization() {
         users = new ArrayList<String>();
         resources = new ArrayList<String>();
-        logoUrl = "logos/users.png";
     }
 
     public Organization(String name, String description, String logoUrl) {

@@ -196,10 +196,14 @@ function createTableRow(org) {
     var row =
     `
         <tr>
-            <td><img alt="..." class="logo-size img-thumbnail img-responsive" src="${org.logoUrl}"/></td>
+            <td>
+                <div class="logo-size">
+                    <img alt="..." class="img-thumbnail img-responsive" src="${org.logoUrl}"/>
+                </div>
+            </td>
             <td>${org.name}</td>
             <td>${org.description}</td>
-            <td><a href="#" onclick="setUpEditForm('${org.name}')"><i class="fa fa-pencil pr-2"></i></a><a href="#" onclick=""><i class="fa fa-trash-o"></i></a></td>
+            <td class="h3"><a class="pr-sm-1" href="#" onclick="setUpEditForm('${org.name}')"><i class="fa fa-pencil pr-2"></i></a><a href="#" onclick=""><i class="fa fa-trash-o"></i></a></td>
         </tr>
     `;
 
@@ -234,7 +238,10 @@ function getImgBytes(callback, data) {
             reader.readAsBinaryString(logoImg.files[0]);
             return;
         } else {
-
+            var wrongCred = $("<div class=\"alert alert-danger text-center\" role=\"alert\"></div>");
+            wrongCred.text("Please select image that is lower then 1MB");
+            wrongCred.insertBefore("input[type=button]");
+            return;
         }
     }
 

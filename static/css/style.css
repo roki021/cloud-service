@@ -10,8 +10,24 @@ body {
     color: red !important;
 }
 
+.table > tbody > tr > td {
+     vertical-align: middle;
+     word-
+     overflow: hidden;
+     white-space: nowrap;
+     max-width: 0;
+}
+
+.table > thead > tr > th {
+    width: 25%;
+}
+
 .logo-size {
-    width: 40px;
+    width: 4rem;
+    height: 4rem;
+    overflow: hidden;
+    display: table-cell;
+    vertical-align: middle;
 }
 
 #sidebar-wrapper {
