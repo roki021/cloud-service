@@ -3,12 +3,11 @@ package controler;
 import beans.*;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 public class CloudServiceControler {
+
+    private static final String LOGO_PATH = "logos";
 
     private HashMap<String, User> users;
     private HashMap<String, Organization> organizations;
@@ -16,6 +15,19 @@ public class CloudServiceControler {
     private HashMap<String, VMCategory> vmCategories;
     private HashMap<String, Disc> discs;
     private HashMap<String, User> superAdmins;
+
+    private static String generateRandomString() {
+        int leftLimit = 48; // numeral '0'
+        int rightLimit = 122; // letter 'z'
+        int targetStringLength = 7;
+        Random random = new Random();
+
+        return random.ints(leftLimit, rightLimit + 1)
+                .filter(i -> (i <= 57 || i >= 65) && (i <= 90 || i >= 97))
+                .limit(targetStringLength)
+                .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
+                .toString();
+    }
 
     private void setUpSuperAdmins() {
         if(superAdmins != null) {
@@ -37,7 +49,7 @@ public class CloudServiceControler {
         users.put("mika@gmail.com", new User("mika@gmail.com", "mika", "mika", "mikic", "org1", User.Role.ADMIN));
         users.put("pera@gmail.com", new User("pera@gmail.com", "pera", "pera", "peric", null, User.Role.USER));
         organizations = new HashMap<String, Organization>();
-        organizations.put("org1", new Organization("org1", "org1", ""));
+        organizations.put("org1", new Organization("org1", "org1", "logos/users.png"));
         virtualMachines = new HashMap<String, VM>();
         vmCategories = new HashMap<String, VMCategory>();
         discs = new HashMap<String, Disc>();
@@ -174,18 +186,8 @@ public class CloudServiceControler {
         String path = "./static/";
         if(newOrg != null) {
             if(!organizations.containsKey(newOrg.getName()) || oldKey.equals(newOrg.getName())) {
-                String oldSrc = "logos/" + oldKey + ".jpg";
-                if(!newOrg.getName().equals(oldKey)) {
-                    String newSrc = "logos/" + newOrg.getName() + ".jpg";
-                    changeImageName(path + oldSrc, path + newSrc);
-                }
-                else {
-                    if(newOrg.getLogoUrl().equals("logos/users.png")) {
-                        newOrg.setLogoUrl(organizations.get(newOrg.getName()).getLogoUrl());
-                    }
-                }
+                changeLogo(organizations.get(oldKey).getLogoUrl(), newOrg);
                 removeOrganization(oldKey);
-                extractImageFromBytes(newOrg);
                 organizations.put(newOrg.getName(), newOrg);
                 changeUsersOrganization(oldKey, newOrg.getName());
                 retVal = true;
@@ -195,26 +197,38 @@ public class CloudServiceControler {
         return retVal;
     }
 
-    public boolean changeImageName(String oldName, String newName) {
-        File img1 = new File(oldName);
-        return img1.renameTo(new File(newName));
+    public String extractImageFromBytes(String logo, String imgPath) {
+        if(logo == null) {
+            return imgPath;
+        }
+
+        String newImgPath = "";
+        if(imgPath.contains("users.png"))
+            newImgPath = LOGO_PATH + "/" + generateRandomString() + ".jpg";
+        else
+            newImgPath = imgPath;
+
+        try(OutputStream writer = new FileOutputStream("./static/" + newImgPath)) {
+            StringReader reader = new StringReader(logo);
+            int k = 0;
+            while((k = reader.read()) != -1){
+                writer.write(k);
+            }
+            System.out.println("Image extracted successfully");
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+            System.out.println("Image extracted unsuccessfully");
+        }
+
+        return newImgPath;
     }
 
-    public void extractImageFromBytes(Organization org) {
-        String imgPath = "logos/" + org.getName() + ".jpg";
-        if(!org.getLogoUrl().equals(imgPath)) {
-            try(OutputStream writer = new FileOutputStream("./static/" + imgPath)) {
-                StringReader reader = new StringReader(org.getLogoUrl());
-                int k = 0;
-                while((k = reader.read()) != -1){
-                    writer.write(k);
-                }
-                org.setLogoUrl(imgPath);
-                System.out.println("Image extracted successfully");
-            } catch (IOException ioe) {
-                ioe.printStackTrace();
-            }
-        }
+    public void setUpLogo(Organization org) {
+        org.setLogoUrl(extractImageFromBytes(org.getLogoUrl(), LOGO_PATH + "/users.png"));
+    }
+
+    public void changeLogo(String oldLogo, Organization newOrg) {
+        newOrg.setLogoUrl(extractImageFromBytes(newOrg.getLogoUrl(), oldLogo));
     }
 
     /* ********************* VM ********************* */

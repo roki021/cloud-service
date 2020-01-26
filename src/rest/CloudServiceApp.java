@@ -294,7 +294,6 @@ public class CloudServiceApp {
 
             if(user != null) {
                 if(user.getRole() == User.Role.SUPER_ADMIN) {
-                    cloudService.extractImageFromBytes(org);
                     return "{\"added\":" + cloudService.addOrganization(org) + "}";
                 }
             }

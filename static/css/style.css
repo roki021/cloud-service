@@ -12,9 +12,9 @@ body {
 
 .table > tbody > tr > td {
      vertical-align: middle;
-     word-
+     word-wrap: break-word;
      overflow: hidden;
-     white-space: nowrap;
+     white-space: normal;
      max-width: 0;
 }
 
