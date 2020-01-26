@@ -2,7 +2,11 @@ package rest;
 
 import beans.Organization;
 import beans.User;
+import beans.VM;
+import beans.VMCategory;
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import controler.CloudServiceControler;
 import spark.Request;
@@ -357,6 +361,91 @@ public class CloudServiceApp {
 
             if(user != null) {
                 return g.toJson(cloudService.getOrganization(user.getOrganization()));
+            }
+
+            return responseStatus(res, 403, "Unauthorized access");
+        });
+
+        /* ********************* WORKING WITH VIRTUAL MACHINES ********************* */
+
+        get("/rest/getVMs", (req, res) -> {
+            res.type("application/json");
+            Session ss = req.session(true);
+            User user = ss.attribute("user");
+
+            if(user != null) {
+                if(user.getRole() == User.Role.SUPER_ADMIN) {
+                    JsonObject ret = new JsonObject();
+                    JsonArray array = new JsonArray();
+                    int i = 0;
+                    for(VM vm : cloudService.getAllVMs()) {
+
+                        JsonObject v = new JsonObject();
+                        v.addProperty("name", vm.getName());
+                        v.addProperty("cores", cloudService.getVMCategory(vm.getCategoryName()).getCores());
+                        v.addProperty("ram", cloudService.getVMCategory(vm.getCategoryName()).getRam());
+                        v.addProperty("gpu", cloudService.getVMCategory(vm.getCategoryName()).getGpuCores());
+                        v.addProperty("organization", "");
+                        ret.add(Integer.toString(i++), v);
+                        array.add(v);
+                    }
+
+                    return array;
+                }
+                else {
+                    return g.toJson(cloudService.getAllVMs()); // TODO: filtrirati prema organizaciji
+                }
+            }
+
+            return responseStatus(res, 403, "Unauthorized access");
+        });
+
+        /* ********************* WORKING WITH VM Categories ********************* */
+
+        get("/rest/getVMCats", (req, res) -> {
+            res.type("application/json");
+            Session ss = req.session(true);
+            User user = ss.attribute("user");
+
+            if(user != null) {
+                if(user.getRole() == User.Role.SUPER_ADMIN) {
+                    return g.toJson(cloudService.getAllVMCategories());
+                }
+            }
+
+            return responseStatus(res, 403, "Unauthorized access");
+        });
+
+        get("/rest/removeCategory", (req, res) -> {
+            res.type("application/json");
+            Session ss = req.session();
+            User user = ss.attribute("user");
+            String name = req.queryParams("name");
+
+            if(user != null) {
+                if (user.getRole() == User.Role.SUPER_ADMIN) {
+                    if(cloudService.removeVMCategory(name)==null)
+                        return "{\"removed\": false}";
+                    else
+                        return "{\"removed\": true}";
+                }
+            }
+            return responseStatus(res, 403, "Unauthorized access");
+        });
+
+        post("/rest/addVMCat", (req, res) -> {
+            res.type("application/json");
+            VMCategory cat = null;
+            try {
+                cat = g.fromJson(req.body(), VMCategory.class);
+            } catch(Exception ex) {}
+            Session ss = req.session(true);
+            User user = ss.attribute("user");
+
+            if(user != null) {
+                if(user.getRole() == User.Role.SUPER_ADMIN) {
+                    return "{\"added\":" + cloudService.addVMCategory(cat) + "}";
+                }
             }
 
             return responseStatus(res, 403, "Unauthorized access");

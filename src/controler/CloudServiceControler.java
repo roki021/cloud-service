@@ -13,6 +13,7 @@ public class CloudServiceControler {
     private static final String DATA_PATH = "./data";
     private static final String ORG_FILE = "/organizations.json";
     private static final String USERS_FILE = "/users.json";
+    private static final String CATS_FILE = "/vmcategories.json";
 
 
     private HashMap<String, User> users;
@@ -54,6 +55,7 @@ public class CloudServiceControler {
     private void loadFiles() {
         loadOrganizations(DATA_PATH + ORG_FILE);
         loadUsers(DATA_PATH + USERS_FILE);
+        loadVMCats(DATA_PATH + CATS_FILE);
     }
 
     private void saveFile(Collection<?> collection, String filePath) {
@@ -69,6 +71,9 @@ public class CloudServiceControler {
         users = new HashMap<String, User>();
         organizations = new HashMap<String, Organization>();
         virtualMachines = new HashMap<String, VM>();
+        virtualMachines.put("vm1", new VM("vm1", "cat1"));
+        virtualMachines.put("vm2", new VM("vm2", "cat1"));
+        virtualMachines.put("vm3", new VM("vm3", "cat2"));
         vmCategories = new HashMap<String, VMCategory>();
         discs = new HashMap<String, Disc>();
         superAdmins = new HashMap<String, User>();
@@ -387,6 +392,19 @@ public class CloudServiceControler {
 
     /* ********************* VM_CATEGORY ********************* */
 
+    private void loadVMCats(String filePath) {
+        if(new File(filePath).exists()) {
+            try(FileReader fr = new FileReader(filePath)) {
+                for(VMCategory cat : g.fromJson(fr, VMCategory[].class)) {
+                    vmCategories.put(cat.getName(), cat);
+                }
+            } catch (IOException ioe) {
+                ioe.printStackTrace();
+                System.out.println("Data not loaded");
+            }
+        }
+    }
+
     public VMCategory getVMCategory(String key) {
         VMCategory vmCategory = null;
 
@@ -405,6 +423,7 @@ public class CloudServiceControler {
         if(vmCategory != null) {
             if(!vmCategories.containsKey(vmCategory.getName())) {
                 vmCategories.put(vmCategory.getName(), vmCategory);
+                saveFile(vmCategories.values(), DATA_PATH + CATS_FILE);
                 retVal = true;
             }
         }
@@ -413,7 +432,9 @@ public class CloudServiceControler {
     }
 
     public VMCategory removeVMCategory(String key) {
-        return vmCategories.remove(key);
+        VMCategory cat = vmCategories.remove(key);
+        saveFile(vmCategories.values(), DATA_PATH + CATS_FILE);
+        return cat;
     }
 
     public boolean changeVMCategory(String oldKey, VMCategory newVMCategory) {
