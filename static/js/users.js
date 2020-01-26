@@ -44,6 +44,45 @@ function getUsers() {
 }
 
 
+function getUserRole() {
+    $.ajax({
+        url: "rest/getUserRole",
+        type: "GET",
+        dataType: "json",
+        complete: function(data) {
+            response = data.responseJSON;
+            if(response.currentUser == "SUPER_ADMIN")
+                return "SUPER_ADMIN";
+            else if(response.currentUser == "ADMIN")
+                return "ADMIN";
+            else if(response.currentUser == "USER")
+                return "USER";
+            else
+                return "null";
+        }
+    });
+}
+
+
+function fillOrgList() {
+    $.ajax({
+            url: "rest/getOrgs",
+            type: "GET",
+            dataType: "json",
+            complete: function(data) {
+                response = data.responseJSON;
+                for(let org of response) {
+                    var row =
+                    `
+                        <option value="${org.name}">${org.name}</option>
+                    `;
+                    $("#organizationSelect").append(row);
+                }
+            }
+        });
+}
+
+
 function addUserClick() {
     $("#canvas").empty();
     $.ajax({
@@ -60,7 +99,8 @@ function addUserClick() {
                         <div class="form-group row">
                             <label for="exampleFormControlSelect1" class="col-sm-2 col-form-label">Organization</label>
                             <div class="col-sm-10 pt-sm-1">
-                                <input type="text" name="organization" class="form-control" id="exampleFormControlInput5">
+                                <select class="form-control" id="organizationSelect" name="organization">
+                                </select>
                             </div>
                          </div>
                     `;
@@ -108,6 +148,8 @@ function addUserClick() {
                 `;
                 formHolder.append(form);
                 $("#canvas").append(formHolder);
+                if(response.currentUser == "SUPER_ADMIN")
+                    fillOrgList();
             }
     });
 }
@@ -128,7 +170,8 @@ function editUserClick(email) {
                         <div class="form-group row">
                             <label for="exampleFormControlSelect1" class="col-sm-2 col-form-label">Organization</label>
                             <div class="col-sm-10 pt-sm-1">
-                                <input type="text" name="organization" class="form-control" id="organizationField">
+                                <select class="form-control" id="organizationSelect" name="organization">
+                                </select>
                             </div>
                          </div>
                     `;
@@ -176,6 +219,8 @@ function editUserClick(email) {
                 `;
                 formHolder.append(form);
                 $("#canvas").append(formHolder);
+                if(response.currentUser == "SUPER_ADMIN")
+                    fillOrgList();
                 editUserFill(email);
             }
     });
