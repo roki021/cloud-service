@@ -4,7 +4,7 @@ public class Disc extends Resource{
     public enum DiscType { SSD, HDD };
 
     private DiscType discType;
-    private int capacity;
+    private int capacity; // capacity is shown in GB
     private String virtualMachine;
 
     public Disc() {

@@ -1,3 +1,14 @@
+var capacityMap = {
+    "128GB": 128,
+    "256GB": 256,
+    "512GB": 512,
+    "1TB": 1024,
+    "2TB": 2048,
+    "3TB": 3072,
+    "4TB": 4096,
+    "5TB": 5120
+}
+
 function getDiscs() {
    $.ajax({
        url: "rest/getDiscs",
@@ -74,6 +85,33 @@ function addDisc(route) {
     }
 }
 
+function removeDisc(discName) {
+    var jsonData = JSON.stringify({name: discName});
+    $.ajax({
+        url: "rest/removeDisc",
+        type: "POST",
+        data: jsonData,
+        contentType: "application/json",
+        dataType: "json",
+        complete: function(data) {
+            if(data.status === 403) {
+                response = data.responseJSON;
+                statusMessageStyle(403, response.message);
+            } else {
+                response = data.responseJSON;
+
+                if(!response.deleted) {
+                    var wrongCred = $("<div class=\"alert alert-danger text-center\" role=\"alert\"></div>");
+                    wrongCred.text("There is already disc or VM with this name");
+                    wrongCred.insertBefore("input[type=button]");
+                } else {
+                    getDiscs();
+                }
+            }
+        }
+    });
+}
+
 function setUpDiscView(canvas, discs) {
     var div = $(`<div class="mt-sm-3 mr-sm-1 ml-sm-1 row justify-content-center"/>`);
 
@@ -115,7 +153,7 @@ function setUpAddFormDisc(buttonText, func, route) {
         form.append(createInput("text", "name", "Name", "Name", "form-control"));
         form.append(createSelect("virtualMachine", "Attached to VM", "form-control"));
         form.append(createSelect("discType", "Disc type", "form-control"));
-        form.append(createInput("number", "capacity", "Capacity", "", "form-control"));
+        form.append(createSelect("capacity", "Capacity", "form-control"));
         form.append(`
             <input type="button" class="btn btn-primary float-right col-sm-auto" onclick="${func}('${route}')" value="${buttonText}"/>
         `);
@@ -138,14 +176,20 @@ function fillDropDowns() {
             } else {
                 var vms = $("#virtualMachineField");
 
-                vms.append(createOption(""));
+                vms.append(createOption("", ""));
                 for(let vm of data.responseJSON) {
-                    vms.append(createOption(vm.name));
+                    vms.append(createOption(vm.name, vm.name));
                 }
 
                 var typeSelect = $("#discTypeField");
-                typeSelect.append(createOption("SSD"));
-                typeSelect.append(createOption("HDD"));
+                typeSelect.append(createOption("SSD", "SSD"));
+                typeSelect.append(createOption("HDD", "HDD"));
+
+                var capacitySelect = $("#capacityField");
+                capacitySelect.append(createOption("", ""));
+                for(let key in capacityMap) {
+                    capacitySelect.append(createOption(capacityMap[key], key));
+                }
             }
         }
     });
@@ -159,13 +203,13 @@ function createTableRowDisc(disc) {
             <td>${disc.name}</td>
             <td>${disc.capacity}</td>
             <td>${vm}</td>
-            <td><a class="pr-sm-1" href="#" onclick=""><i class="fa fa-pencil pr-2"></i></a><a href="#" onclick=""><i class="fa fa-trash-o"></i></a></td>
+            <td><a class="pr-sm-1" href="#" onclick=""><i class="fa fa-pencil pr-2"></i></a><a href="#" onclick="removeDisc('${disc.name}')"><i class="fa fa-trash-o"></i></a></td>
         </tr>
     `;
 
     return row;
 }
 
-function createOption(value) {
-    return `<option value="${value}">${value}</option>`;
+function createOption(value, text) {
+    return `<option value="${value}">${text}</option>`;
 }
