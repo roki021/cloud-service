@@ -85,6 +85,7 @@ function setUpDiscView(canvas, discs) {
                 <th>Name</th>
                 <th>Capacity</th>
                 <th>Attached to VM</th>
+                <th>Actions</th>
             </tr>
         </thead>
     `);
@@ -115,15 +116,37 @@ function setUpAddFormDisc(buttonText, func, route) {
         form.append(createSelect("virtualMachine", "Attached to VM", "form-control"));
         form.append(createSelect("discType", "Disc type", "form-control"));
         form.append(createInput("number", "capacity", "Capacity", "", "form-control"));
-        /*form.append(`
+        form.append(`
             <input type="button" class="btn btn-primary float-right col-sm-auto" onclick="${func}('${route}')" value="${buttonText}"/>
-        `);*/
-        var typeSelect = $("#discTypeField");
-        typeSelect.append(createOption("SSD"));
-        typeSelect.append(createOption("HDD"));
+        `);
+
+        fillDropDowns();
 
         formHolder.append(form);
     }
+}
+
+function fillDropDowns() {
+    $.ajax({
+        url: "rest/getVMs",
+        type: "GET",
+        dataType: "json",
+        complete: function(data) {
+            if(data.status === 403) {
+                response = data.responseJSON;
+                statusMessageStyle(403, response.message);
+            } else {
+                var vms = $("#virtualMachineField");
+                for(let vm of data.responseJSON) {
+                    vms.append(createOption(vm.name));
+                }
+
+                var typeSelect = $("#discTypeField");
+                typeSelect.append(createOption("SSD"));
+                typeSelect.append(createOption("HDD"));
+            }
+        }
+    });
 }
 
 function createTableRowDisc(disc) {

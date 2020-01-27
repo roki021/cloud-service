@@ -14,6 +14,8 @@ public class CloudServiceControler {
     private static final String ORG_FILE = "/organizations.json";
     private static final String USERS_FILE = "/users.json";
     private static final String CATS_FILE = "/vmcategories.json";
+    private static final String DISC_FILE = "/discs.json";
+    private static final String VM_FILE = "/vm.json";
 
 
     private HashMap<String, User> users;
@@ -231,6 +233,16 @@ public class CloudServiceControler {
         return org;
     }
 
+    public Organization getOrgThatContainsVM(String vmName) {
+        for(Organization org : organizations.values()) {
+            if(org.containsResource(vmName)) {
+                return org;
+            }
+        }
+
+        return null;
+    }
+
     public Collection<Organization> getAllOrganizations() {
         return organizations.values();
     }
@@ -375,12 +387,33 @@ public class CloudServiceControler {
         return orgDiscs;
     }
 
+    public void addDiscToVM(Disc disc) {
+        if(disc.getVirtualMachine() != null) {
+            VM vm = virtualMachines.get(disc.getVirtualMachine());
+            if(vm != null) {
+                vm.addAttachedDisc(disc.getName());
+                Organization org = getOrgThatContainsVM(vm.getName());
+                if(org != null) {
+                    org.addResource(disc.getName());
+                }
+            }
+        }
+    }
+
+    public void saveAfterDiscChange() {
+        saveFile(discs.values(), DATA_PATH + DISC_FILE);
+        saveFile(organizations.values(), DATA_PATH + ORG_FILE);
+        saveFile(virtualMachines.values(), DATA_PATH + VM_FILE);
+    }
+
     public boolean addDisc(Disc disc) {
         boolean retVal = false;
         if(disc != null) {
             if(!discs.containsKey(disc.getName()) &&
                     !virtualMachines.containsKey(disc.getName())) {
                 discs.put(disc.getName(), disc);
+                addDiscToVM(disc);
+                saveAfterDiscChange();
                 retVal = true;
             }
         }
@@ -389,7 +422,18 @@ public class CloudServiceControler {
     }
 
     public Disc removeDisc(String key) {
-        return discs.remove(key);
+        Disc disc = discs.get(key);
+        VM vm = virtualMachines.get(disc.getVirtualMachine());
+        if(vm != null) {
+            vm.removeAttachedDisc(key);
+            Organization org = getOrgThatContainsVM(key);
+            if(org != null) {
+                org.removeResource(key);
+            }
+        }
+        disc = discs.remove(key);
+        saveAfterDiscChange();
+        return disc;
     }
 
     public boolean changeDisc(String oldKey, Disc newDisc) {
@@ -400,6 +444,8 @@ public class CloudServiceControler {
                     || oldKey.equals(newDisc.getName())) {
                 removeDisc(oldKey);
                 discs.put(newDisc.getName(), newDisc);
+                addDiscToVM(newDisc);
+                saveAfterDiscChange();
                 retVal = true;
             }
         }

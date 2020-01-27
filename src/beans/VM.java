@@ -43,6 +43,10 @@ public  class VM extends Resource{
         this.attachedDiscs.add(disc);
     }
 
+    public void removeAttachedDisc(String disc) {
+        this.attachedDiscs.remove(disc);
+    }
+
     public List<Activity> getActivities() {
         return activities;
     }
