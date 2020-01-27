@@ -376,13 +376,20 @@ public class CloudServiceApp {
                     JsonArray array = new JsonArray();
                     int i = 0;
                     for(VM vm : cloudService.getAllVMs()) {
-
+                        String orgName = "";
+                        for(Organization o : cloudService.getAllOrganizations()) {
+                            System.out.println(o.getName());
+                            if(o.containsResource(vm.getName())) {
+                                orgName = o.getName();
+                                break;
+                            }
+                        }
                         JsonObject v = new JsonObject();
                         v.addProperty("name", vm.getName());
                         v.addProperty("cores", cloudService.getVMCategory(vm.getCategoryName()).getCores());
                         v.addProperty("ram", cloudService.getVMCategory(vm.getCategoryName()).getRam());
                         v.addProperty("gpu", cloudService.getVMCategory(vm.getCategoryName()).getGpuCores());
-                        v.addProperty("organization", "");
+                        v.addProperty("organization", orgName);
                         ret.add(Integer.toString(i++), v);
                         array.add(v);
                     }
@@ -407,6 +414,37 @@ public class CloudServiceApp {
             if(user != null) {
                 if(user.getRole() == User.Role.SUPER_ADMIN) {
                     return g.toJson(cloudService.getAllVMCategories());
+                }
+            }
+
+            return responseStatus(res, 403, "Unauthorized access");
+        });
+
+        get("/rest/getVMCat2", (req, res) -> {
+            res.type("application/json");
+            Session ss = req.session(true);
+            User user = ss.attribute("user");
+            String name = req.queryParams("name");
+
+            if(user != null) {
+                if(user.getRole() == User.Role.SUPER_ADMIN) {
+                    return g.toJson(cloudService.getVMCategory(name));
+                }
+            }
+
+            return responseStatus(res, 403, "Unauthorized access");
+        });
+
+        get("/rest/getVMCat", (req, res) -> {
+            res.type("application/json");
+            Session ss = req.session(true);
+            User user = ss.attribute("user");
+            String name = req.queryParams("name");
+            ss.attribute("catToChange", name);
+
+            if(user != null) {
+                if(user.getRole() == User.Role.SUPER_ADMIN) {
+                    return g.toJson(cloudService.getVMCategory(name));
                 }
             }
 
@@ -442,6 +480,28 @@ public class CloudServiceApp {
             if(user != null) {
                 if(user.getRole() == User.Role.SUPER_ADMIN) {
                     return "{\"added\":" + cloudService.addVMCategory(cat) + "}";
+                }
+            }
+
+            return responseStatus(res, 403, "Unauthorized access");
+        });
+
+        post("/rest/editVMCat", (req, res) -> {
+            res.type("application/json");
+            VMCategory cat = null;
+            try {
+                cat = g.fromJson(req.body(), VMCategory.class);
+            } catch(Exception ex) {}
+            Session ss = req.session(true);
+            User user = ss.attribute("user");
+
+            if(user != null) {
+                if(user.getRole() == User.Role.SUPER_ADMIN) {
+                    String key = ss.attribute("catToChange");
+
+                    if(key != null) {
+                        return "{\"success\":" + cloudService.changeVMCategory(key, cat) + "}";
+                    }
                 }
             }
 

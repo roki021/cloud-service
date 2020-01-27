@@ -11,8 +11,6 @@ function getVMCats() {
                 response = data.responseJSON;
                 statusMessageStyle(403, response.message);
             } else {
-
-                console.log(data.responseJSON);
                 setUpVMCatsView(canvas, data.responseJSON);
             }
         }
@@ -43,7 +41,6 @@ function setUpVMCatsView(canvas, cats) {
     var tbody = $("<tbody/>");
     table.append(tbody);
     for(let cat of cats) {
-        console.log(cat);
         var row =
         `
             <tr>
@@ -51,7 +48,7 @@ function setUpVMCatsView(canvas, cats) {
                 <td>${cat.cores}</td>
                 <td>${cat.ram}</td>
                 <td>${cat.gpuCores}</td>
-                <td><a href="#" onclick="setUpEditForm('${cat.name}')"><i class="fa fa-pencil pr-2"></i></a><a href="#" onclick="removeCategory(${cat.name})"><i class="fa fa-trash-o"></i></a></td>
+                <td><a href="#" onclick="editVmCatClick('${cat.name}')"><i class="fa fa-pencil pr-2"></i></a><a href="#" onclick="removeCategory('${cat.name}')"><i class="fa fa-trash-o"></i></a></td>
             </tr>
         `;
         tbody.append(row);
@@ -139,6 +136,99 @@ function addCategory() {
     });
 }
 
+function editVMCat() {
+    var data = getFormData($("#editVmCatForm"));
+    var s = JSON.stringify(data);
+
+    $.ajax({
+        url: "rest/editVMCat",
+        type: "POST",
+        data: s,
+        contentType: "application/json",
+        dataType: "json",
+        complete: function(data) {
+            $("#canvas").empty();
+            if(data.status == 403) {
+                $("#canvas").append('<h1>403 Forbidden</h1>');
+            } else {
+                getVMCats();
+            }
+        }
+    });
+}
+
+function editVmCatFill(name) {
+    $.ajax({
+            url: "rest/getVMCat?name=" + name,
+            type: "GET",
+            dataType: "json",
+            complete: function(data) {
+                response = data.responseJSON;
+                if(data.status == 403) {
+                    $("#canvas").empty();
+                    $("#canvas").append('<h1>403 Forbidden</h1>');
+                }
+                else if(data.status == 404) {
+                    $("#canvas").empty();
+                    $("#canvas").append('<h1>404 Not Found</h1>');
+                }
+                else {
+                    $("#nameField").val(response.name);
+                    $("#coresField").val(response.cores);
+                    $("#ramField").val(response.ram);
+                    $("#gpuCoresField").val(response.gpuCores);
+                    $("#lastNameField").val(response.lastName);
+                }
+            }
+        });
+}
+
+function editVmCatClick(name) {
+    $("#canvas").empty();
+    var currentUser = window.localStorage.getItem("role");
+    if(currentUser == "SUPER_ADMIN") {
+        var formHolder = $(`<div class="mt-3 mr-1 ml-1 row justify-content-center"/>`);
+        var form =
+        `
+            <form id="editVmCatForm" class="col-sm-8">
+                <div class="form-group row">
+                    <label for="exampleFormControlInput1" class="col-sm-2 col-form-label">Name</label>
+                    <div class="col-sm-10 pt-sm-1">
+                        <input type="text" name="name" class="form-control" id="nameField">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="exampleFormControlInput1" class="col-sm-2 col-form-label">Cores</label>
+                    <div class="col-sm-10 pt-sm-1">
+                        <input type="number" name="cores" class="form-control" id="coresField">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="exampleFormControlInput1" class="col-sm-2 col-form-label">RAM</label>
+                    <div class="col-sm-10 pt-sm-1">
+                        <input type="number" name="ram" class="form-control" id="ramField">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="exampleFormControlInput1" class="col-sm-2 col-form-label">GPU Cores</label>
+                    <div class="col-sm-10 pt-sm-1">
+                        <input type="number" name="gpuCores" class="form-control" id="gpuCoresField">
+                    </div>
+                </div>
+                <button type="button" onclick="editVMCat()" class="btn btn-primary float-right col-sm-auto">Save Changes</button>
+            </form>
+        `;
+        formHolder.append(form);
+        $("#canvas").append(formHolder);
+        editVmCatFill(name);
+    }
+    else {
+        $("#canvas").append('<h1>403 Forbidden</h1>');
+    }
+
+
+}
+
 function removeCategory(name) {
     $.ajax({
         url: "rest/removeCategory?name=" + name,
@@ -146,7 +236,6 @@ function removeCategory(name) {
         dataType: "json",
         complete: function(data) {
             response = data.responseJSON;
-            console.log(response);
             if(response.removed == true) {
                 getVMCats();
             }

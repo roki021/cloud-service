@@ -263,26 +263,26 @@ function editUserFill(email) {
 }
 
 function editUser() {
-    var data = getFormData($("#editUserForm"));
-    var s = JSON.stringify(data);
-    console.log(data);
+     var data = getFormData($("#editUserForm"));
+     var s = JSON.stringify(data);
+     console.log(data);
 
-    $.ajax({
-        url: "rest/editUser",
-        type: "POST",
-        data: s,
-        contentType: "application/json",
-        dataType: "json",
-        complete: function(data) {
-            $("#canvas").empty();
-            if(data.status == 403) {
-                $("#canvas").append('<h1>403 Forbidden</h1>');
-            } else {
-                getUsers();
-            }
-        }
-    });
-}
+     $.ajax({
+         url: "rest/editUser",
+         type: "POST",
+         data: s,
+         contentType: "application/json",
+         dataType: "json",
+         complete: function(data) {
+             $("#canvas").empty();
+             if(data.status == 403) {
+                 $("#canvas").append('<h1>403 Forbidden</h1>');
+             } else {
+                 getUsers();
+             }
+         }
+     });
+ }
 
 function addUser() {
     var data = getFormData($("#addUserForm"));

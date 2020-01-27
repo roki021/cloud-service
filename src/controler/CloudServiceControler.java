@@ -524,6 +524,7 @@ public class CloudServiceControler {
                     || oldKey.equals(newVMCategory.getName())) {
                 removeVMCategory(oldKey);
                 vmCategories.put(newVMCategory.getName(), newVMCategory);
+                saveFile(vmCategories.values(), DATA_PATH + CATS_FILE);
                 retVal = true;
             }
         }
