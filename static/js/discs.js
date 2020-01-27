@@ -164,7 +164,33 @@ function setUpAddFormDisc(buttonText, func, route) {
     }
 }
 
-function fillDropDowns() {
+function setUpEditFormDisc(discName) {
+    setUpAddFormDisc("Save changes", "addDisc", "rest/editDisc");
+    fillDropDowns(function() {
+        var jsonData = JSON.stringify({name: discName});
+        $.ajax({
+            url: "rest/getDisc",
+            type: "POST",
+            contentType: "application/json",
+            data: jsonData,
+            dataType: "json",
+            complete: function(data) {
+                if(data.status === 403) {
+                    response = data.responseJSON;
+                    statusMessageStyle(403, response.message);
+                } else {
+                    var disc = data.responseJSON;
+                    $("#nameField").val(disc.name);
+                    $("#virtualMachineField").val(disc.virtualMachine);
+                    $("#discTypeField").val(disc.discType);
+                    $("#capacityField").val(disc.capacity);
+                }
+            }
+        });
+  })
+}
+
+function fillDropDowns(callback=null) {
     $.ajax({
         url: "rest/getVMs",
         type: "GET",
@@ -175,21 +201,26 @@ function fillDropDowns() {
                 statusMessageStyle(403, response.message);
             } else {
                 var vms = $("#virtualMachineField");
-
+                vms.find('option').remove();
                 vms.append(createOption("", ""));
                 for(let vm of data.responseJSON) {
                     vms.append(createOption(vm.name, vm.name));
                 }
 
                 var typeSelect = $("#discTypeField");
+                typeSelect.find('option').remove();
                 typeSelect.append(createOption("SSD", "SSD"));
                 typeSelect.append(createOption("HDD", "HDD"));
 
                 var capacitySelect = $("#capacityField");
+                capacitySelect.find('option').remove();
                 capacitySelect.append(createOption("", ""));
                 for(let key in capacityMap) {
                     capacitySelect.append(createOption(capacityMap[key], key));
                 }
+
+                if(callback != null)
+                    callback();
             }
         }
     });
@@ -203,7 +234,7 @@ function createTableRowDisc(disc) {
             <td>${disc.name}</td>
             <td>${disc.capacity}</td>
             <td>${vm}</td>
-            <td><a class="pr-sm-1" href="#" onclick=""><i class="fa fa-pencil pr-2"></i></a><a href="#" onclick="removeDisc('${disc.name}')"><i class="fa fa-trash-o"></i></a></td>
+            <td><a class="pr-sm-1" href="#" onclick="setUpEditFormDisc('${disc.name}')"><i class="fa fa-pencil pr-2"></i></a><a href="#" onclick="removeDisc('${disc.name}')"><i class="fa fa-trash-o"></i></a></td>
         </tr>
     `;
 

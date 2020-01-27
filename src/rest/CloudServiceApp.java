@@ -541,6 +541,68 @@ public class CloudServiceApp {
 
             return responseStatus(res, 403, "Unauthorized access");
         });
+
+        post("/rest/getDisc", (req, res) -> {
+            res.type("application/json");
+            Session ss = req.session(true);
+            Disc disc = null;
+            try {
+                disc = g.fromJson(req.body(), Disc.class);
+                ss.attribute("discToChange", disc.getName());
+            } catch (Exception ex) {}
+            User user = isUserLoggedIn(req);
+
+            if (user != null) {
+                if (user.getRole() == User.Role.SUPER_ADMIN) {
+                    if (disc != null) {
+                        return g.toJson(cloudService.getDisc(disc.getName()));
+                    } else {
+                        return responseStatus(res, 400, "Bad request");
+                    }
+                }
+                else if(user.getRole() == User.Role.ADMIN){
+                    if (disc != null) {
+                        Organization org = cloudService.getOrganization(user.getOrganization());
+                        if(org.containsResource(disc.getName())) {
+                            return g.toJson(cloudService.getDisc(disc.getName()));
+                        }
+                    } else {
+                        return responseStatus(res, 400, "Bad request");
+                    }
+                }
+            }
+
+            return responseStatus(res, 403, "Unauthorized access");
+        });
+
+        post("/rest/editDisc", (req, res) -> {
+            res.type("application/json");
+            Disc disc = null;
+            try {
+                disc = g.fromJson(req.body(), Disc.class);
+            } catch (Exception ex) {
+                return responseStatus(res, 400, "Bad request");
+            }
+            User user = isUserLoggedIn(req);
+
+            if (user != null) {
+                String key = req.session(true).attribute("discToChange");
+                if (user.getRole() == User.Role.SUPER_ADMIN) {
+                    if (key != null) {
+                        return "{\"added\":" + cloudService.changeDisc(key, disc) + "}";
+                    }
+                } else if (user.getRole() == User.Role.ADMIN) {
+                    if (key != null) {
+                        Organization org = cloudService.getOrganization(user.getOrganization());
+                        if(org.containsResource(disc.getName())) {
+                            return "{\"added\":" + cloudService.changeDisc(key, disc) + "}";
+                        }
+                    }
+                }
+            }
+
+            return responseStatus(res, 403, "Unauthorized access");
+        });
     }
 
     public static User isUserLoggedIn(Request req) {
