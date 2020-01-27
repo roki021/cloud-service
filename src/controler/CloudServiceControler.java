@@ -425,6 +425,9 @@ public class CloudServiceControler {
         if(disc != null) {
             if(!discs.containsKey(disc.getName()) &&
                     !virtualMachines.containsKey(disc.getName())) {
+                if(disc.getVirtualMachine().isEmpty()) {
+                    disc.setVirtualMachine(null);
+                }
                 discs.put(disc.getName(), disc);
                 addDiscToVM(disc);
                 saveAfterDiscChange();

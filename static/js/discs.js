@@ -137,6 +137,8 @@ function fillDropDowns() {
                 statusMessageStyle(403, response.message);
             } else {
                 var vms = $("#virtualMachineField");
+
+                vms.append(createOption(""));
                 for(let vm of data.responseJSON) {
                     vms.append(createOption(vm.name));
                 }
