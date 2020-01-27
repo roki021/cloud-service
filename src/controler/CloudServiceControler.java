@@ -75,6 +75,8 @@ public class CloudServiceControler {
         virtualMachines.put("vm2", new VM("vm2", "cat1"));
         virtualMachines.put("vm3", new VM("vm3", "cat2"));
         vmCategories = new HashMap<String, VMCategory>();
+        vmCategories.put("cat1", new VMCategory("cat1", 4, 4, 0));
+        vmCategories.put("cat2", new VMCategory("cat2", 6, 8, 2));
         discs = new HashMap<String, Disc>();
         superAdmins = new HashMap<String, User>();
 
@@ -361,10 +363,23 @@ public class CloudServiceControler {
         return discs.values();
     }
 
+    public Collection<Disc> getOrganizationDiscs(String orgKey) {
+        Organization org = organizations.get(orgKey);
+        ArrayList<Disc> orgDiscs = new ArrayList<Disc>();
+
+        for(String discName : org.getResources()) {
+            if(discs.containsKey(discName))
+                orgDiscs.add(discs.get(discName));
+        }
+
+        return orgDiscs;
+    }
+
     public boolean addDisc(Disc disc) {
         boolean retVal = false;
         if(disc != null) {
-            if(!discs.containsKey(disc.getName())) {
+            if(!discs.containsKey(disc.getName()) &&
+                    !virtualMachines.containsKey(disc.getName())) {
                 discs.put(disc.getName(), disc);
                 retVal = true;
             }
@@ -380,7 +395,9 @@ public class CloudServiceControler {
     public boolean changeDisc(String oldKey, Disc newDisc) {
         boolean retVal = false;
         if(newDisc != null) {
-            if(!discs.containsKey(newDisc.getName()) || oldKey.equals(newDisc.getName())) {
+            if((!discs.containsKey(newDisc.getName()) &&
+                    !virtualMachines.containsKey(newDisc.getName()))
+                    || oldKey.equals(newDisc.getName())) {
                 removeDisc(oldKey);
                 discs.put(newDisc.getName(), newDisc);
                 retVal = true;

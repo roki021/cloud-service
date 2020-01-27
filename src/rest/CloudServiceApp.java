@@ -1,9 +1,6 @@
 package rest;
 
-import beans.Organization;
-import beans.User;
-import beans.VM;
-import beans.VMCategory;
+import beans.*;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -449,6 +446,42 @@ public class CloudServiceApp {
             }
 
             return responseStatus(res, 403, "Unauthorized access");
+        });
+
+        /* ********************* WORKING WITH DISCS ********************* */
+
+        get("/rest/getDiscs", (req, res) -> {
+           res.type("application/json");
+           User user = isUserLoggedIn(req);
+
+           if(user != null) {
+                if(user.getRole() == User.Role.SUPER_ADMIN) {
+                    return g.toJson(cloudService.getAllDiscs());
+                }
+                else {
+                    return g.toJson(cloudService.getOrganizationDiscs(user.getOrganization()));
+                }
+           }
+
+           return responseStatus(res, 403, "Unauthorized access");
+        });
+
+        post("/rest/addDisc", (req, res) -> {
+           res.type("application/json");
+           User user = isUserLoggedIn(req);
+           Disc disc = null;
+
+           try {
+                disc = g.fromJson(req.body(), Disc.class);
+           } catch(Exception ex) {}
+
+           if(user != null) {
+               if(user.getRole() != User.Role.USER) {
+                   return "{\"added\":" + cloudService.addDisc(disc) + "}";
+               }
+           }
+
+           return responseStatus(res, 403, "Unauthorized access");
         });
     }
 

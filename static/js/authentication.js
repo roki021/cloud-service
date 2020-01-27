@@ -118,7 +118,7 @@ function setUpPageByUser(user) {
     var sidebarItems = $("#sidebar-items");
 
     sidebarItems.append(createSidebarItem("Virtual machines", "vms", getVMs));
-    sidebarItems.append(createSidebarItem("Discs", "discs", function() {$("#canvas").empty();}))
+    sidebarItems.append(createSidebarItem("Discs", "discs", getDiscs));
     switch(user.role) {
         case "SUPER_ADMIN":
             sidebarItems.append(createSidebarItem("Organizations", "orgs", getOrganizations));
@@ -139,7 +139,7 @@ function setUpPageByUser(user) {
         $("#vms").click();
     }
 
-    window.sessionStorage.setItem("role", user.role);
+    window.localStorage.setItem("role", user.role);
 }
 
 function createSidebarItem(text, id, clickFunc) {

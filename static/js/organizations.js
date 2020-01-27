@@ -181,7 +181,7 @@ function setUpOrgView(canvas, organizations) {
     var tbody = $("<tbody/>");
     table.append(tbody);
     for(let org of organizations) {
-        tbody.append(createTableRow(org));
+        tbody.append(createTableRowOrg(org));
     }
 
     div.append(table);
@@ -192,7 +192,7 @@ function setUpOrgView(canvas, organizations) {
     canvas.append(addOrgButton);
 }
 
-function createTableRow(org) {
+function createTableRowOrg(org) {
     var desc = $.trim(org.description) == "" ? "-" : org.description;
     var row =
     `
@@ -237,6 +237,20 @@ function createInput(type, name, labelText, placeholder, inputClass) {
     `
 
     return input;
+}
+
+function createSelect(name, labelText, inputClass) {
+    var select =
+    `
+        <div class="form-group row">
+            <label for="${name}Field" class="col-sm-2 col-form-label">${labelText}</label>
+            <div class="col-sm-10 pt-sm-1">
+                <select class="${inputClass}" id="${name}Field" name="${name}"></select>
+            </div>
+        </div>
+    `
+
+    return select;
 }
 
 function getImgBytes(callback, data) {
