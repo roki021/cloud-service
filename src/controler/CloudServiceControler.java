@@ -58,6 +58,7 @@ public class CloudServiceControler {
         loadOrganizations(DATA_PATH + ORG_FILE);
         loadUsers(DATA_PATH + USERS_FILE);
         loadVMCats(DATA_PATH + CATS_FILE);
+        loadDiscs(DATA_PATH + DISC_FILE);
     }
 
     private void saveFile(Collection<?> collection, String filePath) {
@@ -361,6 +362,19 @@ public class CloudServiceControler {
     }
 
     /* ********************* DISC ********************* */
+
+    private void loadDiscs(String filePath) {
+        if(new File(filePath).exists()) {
+            try(FileReader fr = new FileReader(filePath)) {
+                for(Disc disc : g.fromJson(fr, Disc[].class)) {
+                    discs.put(disc.getName(), disc);
+                }
+            } catch (IOException ioe) {
+                ioe.printStackTrace();
+                System.out.println("Data not loaded");
+            }
+        }
+    }
 
     public Disc getDisc(String key) {
         Disc disc = null;
