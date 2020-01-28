@@ -85,6 +85,10 @@ public class User {
         return false;
     }
 
+    public boolean emptyFieldExists() {
+        return (email.equals("") || firstName.equals("") || lastName.equals("") || password.equals("") || organization.equals("") || role.equals(""));
+    }
+
     @Override
     public String toString() {
         return "User{" +

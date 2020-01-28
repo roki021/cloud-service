@@ -112,38 +112,38 @@ function addUserClick() {
                         <div class="form-group row">
                             <label for="exampleFormControlInput1" class="col-sm-2 col-form-label">Email address</label>
                             <div class="col-sm-10 pt-sm-1">
-                                <input type="email" name="email" class="form-control" id="exampleFormControlInput1" placeholder="name@example.com">
+                                <input type="email" name="email" class="form-control" id="emailField" placeholder="name@example.com">
                             </div>
                         </div>
                         <div class="form-group row">
                             <label for="exampleFormControlInput1" class="col-sm-2 col-form-label">First Name</label>
                             <div class="col-sm-10 pt-sm-1">
-                                <input type="text" name="firstName" class="form-control" id="exampleFormControlInput2">
+                                <input type="text" name="firstName" class="form-control" id="firstNameField">
                             </div>
                         </div>
                         <div class="form-group row">
                             <label for="exampleFormControlInput1" class="col-sm-2 col-form-label">Last Name</label>
                             <div class="col-sm-10 pt-sm-1">
-                                <input type="text" name="lastName" class="form-control" id="exampleFormControlInput3">
+                                <input type="text" name="lastName" class="form-control" id="lastNameField">
                             </div>
                         </div>
                         <div class="form-group row">
                             <label for="exampleFormControlInput1" class="col-sm-2 col-form-label">Password</label>
                             <div class="col-sm-10 pt-sm-1">
-                                <input type="password" name="password" autocomplete="new-password" class="form-control" id="exampleFormControlInput4">
+                                <input type="password" name="password" autocomplete="new-password" class="form-control" id="passwordField">
                             </div>
                         </div>
                         ${extra}
                         <div class="form-group row">
                             <label for="exampleFormControlSelect1" class="col-sm-2 col-form-label">Type</label>
                             <div class="col-sm-10 pt-sm-1">
-                                <select class="form-control" id="exampleFormControlSelect1" name="role">
+                                <select class="form-control" id="roleField" name="role">
                                     <option value="ADMIN">Admin</option>
                                     <option value="USER">User</option>
                                 </select>
                             </div>
                         </div>
-                        <button type="button" onclick="addUser()" class="btn btn-primary float-right col-sm-auto">Add User</button>
+                        <input type="button" onclick="addUser()" class="btn btn-primary float-right col-sm-auto" value="Add User"/>
                     </form>
                 `;
                 formHolder.append(form);
@@ -214,7 +214,7 @@ function editUserClick(email) {
                                 </select>
                             </div>
                         </div>
-                        <button type="button" onclick="editUser()" class="btn btn-primary float-right col-sm-auto">Save Changes</button>
+                        <input type="button" onclick="editUser()" class="btn btn-primary float-right col-sm-auto" value="Save Changes"/>
                     </form>
                 `;
                 formHolder.append(form);
@@ -233,7 +233,6 @@ function editUserFill(email) {
         dataType: "json",
         complete: function(data) {
             response = data.responseJSON;
-            console.log(response);
             if(data.status == 403) {
                 $("#canvas").empty();
                 $("#canvas").append('<h1>403 Forbidden</h1>');
@@ -248,7 +247,6 @@ function editUserFill(email) {
                 $("#passwordField").val(response.password);
                 $("#firstNameField").val(response.firstName);
                 $("#lastNameField").val(response.lastName);
-                console.log(response.organization);
                 if(response.organization == undefined)
                     response.organization = "-";
                 var org =
@@ -263,47 +261,69 @@ function editUserFill(email) {
 }
 
 function editUser() {
-     var data = getFormData($("#editUserForm"));
-     var s = JSON.stringify(data);
-     console.log(data);
+    var data = getFormData($("#editUserForm"));
+    var s = JSON.stringify(data);
 
-     $.ajax({
-         url: "rest/editUser",
-         type: "POST",
-         data: s,
-         contentType: "application/json",
-         dataType: "json",
-         complete: function(data) {
-             $("#canvas").empty();
-             if(data.status == 403) {
-                 $("#canvas").append('<h1>403 Forbidden</h1>');
-             } else {
+    if(isInputEmptyOrWhitespaces("#editUserForm"))
+    $.ajax({
+     url: "rest/editUser",
+     type: "POST",
+     data: s,
+     contentType: "application/json",
+     dataType: "json",
+     complete: function(data) {
+         $("#canvas").empty();
+         if(data.status == 403) {
+             $("#canvas").append('<h1>403 Forbidden</h1>');
+         } else if(data.status == 400) {
+             $("#canvas").append('<h1>400 Bad Request</h1>');
+         } else {
+             response = data.responseJSON;
+             if(response.success)
                  getUsers();
+             else {
+                 var wrongCred = $("<div class=\"alert alert-danger text-center\" role=\"alert\"></div>");
+                 wrongCred.text("There is already User with this email.");
+                 wrongCred.insertBefore("input[type=button]");
              }
          }
-     });
+     }
+    });
  }
 
 function addUser() {
     var data = getFormData($("#addUserForm"));
     var s = JSON.stringify(data);
-    console.log(data);
 
-    $.ajax({
-        url: "rest/addUser",
-        type: "POST",
-        data: s,
-        contentType: "application/json",
-        dataType: "json",
-        complete: function(data) {
-            $("#canvas").empty();
-            if(data.status == 403) {
-                $("#canvas").append('<h1>403 Forbidden</h1>');
-            } else {
-                getUsers();
+    if(isInputEmptyOrWhitespaces("#addUserForm")) {
+        $.ajax({
+            url: "rest/addUser",
+            type: "POST",
+            data: s,
+            contentType: "application/json",
+            dataType: "json",
+            complete: function(data) {
+                if(data.status == 403) {
+                    $("#canvas").empty();
+                    $("#canvas").append('<h1>403 Forbidden</h1>');
+                }
+                else if (data.status == 400) {
+                    $("#canvas").empty();
+                    $("#canvas").append('<h1>400 Bad Request</h1>');
+                }
+                else {
+                    response = data.responseJSON;
+                    if(response.added)
+                        getUsers();
+                    else {
+                        var wrongCred = $("<div class=\"alert alert-danger text-center\" role=\"alert\"></div>");
+                        wrongCred.text("There is already User with this email.");
+                        wrongCred.insertBefore("input[type=button]");
+                    }
+                }
             }
-        }
-    });
+        });
+    }
 }
 
 function removeUser(email) {
@@ -313,12 +333,14 @@ function removeUser(email) {
         dataType: "json",
         complete: function(data) {
             response = data.responseJSON;
-            if(response.success == true) {
+            if(data.status == 403) {
+                $("#canvas").empty();
+                $("#canvas").append('<h1>403 Forbidden</h1>');
+            } else if(data.status == 400) {
+                $("#canvas").empty();
+                $("#canvas").append('<h1>400 Bad Request</h1>');
+            } else if(response.success == true) {
                 getUsers();
-            }
-            else
-            {
-                console.log("greska");
             }
         }
     });

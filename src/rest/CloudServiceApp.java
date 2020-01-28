@@ -144,7 +144,7 @@ public class CloudServiceApp {
             res.type("application/json");
             Session ss = req.session();
             User user = ss.attribute("user");
-            String msg = "false";
+            boolean msg = false;
 
             if (user == null) {
                 res.status(403);
@@ -152,8 +152,10 @@ public class CloudServiceApp {
                 User u;
                 try {
                     u = g.fromJson(req.body(), User.class);
-                    cloudService.addUser(u);
-                    msg = "true";
+                    if(!u.emptyFieldExists())
+                        msg = cloudService.addUser(u);
+                    else
+                        res.status(400);
                 } catch (Exception ex) {
                 }
             } else if (user.getRole() == User.Role.ADMIN) {
@@ -161,21 +163,23 @@ public class CloudServiceApp {
                 try {
                     u = g.fromJson(req.body(), User.class);
                     u.setOrganization(user.getOrganization());
-                    cloudService.addUser(u);
-                    msg = "true";
+                    if(!u.emptyFieldExists())
+                        msg = cloudService.addUser(u);
+                    else
+                        res.status(400);
                 } catch (Exception ex) {
                 }
             } else {
                 res.status(403);
             }
-            return "{\"added\": " + msg;
+            return "{\"added\": " + msg + "}";
         });
 
         post("/rest/editUser", (req, res) -> {
             res.type("application/json");
             Session ss = req.session();
             User user = ss.attribute("user");
-            String success = "false";
+            boolean success = false;
 
             if (user == null) {
                 res.status(403);
@@ -183,15 +187,14 @@ public class CloudServiceApp {
                 User u;
                 try {
                     u = g.fromJson(req.body(), User.class);
-                    System.out.println(u);
                     User userEdit = cloudService.getUser(u.getEmail());
                     if (userEdit != null) {
                         u.setOrganization(userEdit.getOrganization());
                         u.setEmail(userEdit.getEmail());
-                        if (cloudService.changeUserCreditials(u)) {
-                            success = "true";
-                        }
-
+                        if(!u.emptyFieldExists())
+                            success = cloudService.changeUserCreditials(u);
+                        else
+                            res.status(400);
                     }
                 } catch (Exception e) {
                     res.status(404);
@@ -204,8 +207,10 @@ public class CloudServiceApp {
                     if (userEdit != null && userEdit.getOrganization().equals(user.getOrganization())) {
                         u.setOrganization(userEdit.getOrganization());
                         u.setEmail(userEdit.getEmail());
-                        if (cloudService.changeUserCreditials(u))
-                            success = "true";
+                        if(!u.emptyFieldExists())
+                            success = cloudService.changeUserCreditials(u);
+                        else
+                            res.status(400);
                     }
                 } catch (Exception e) {
                     res.status(404);
@@ -213,7 +218,7 @@ public class CloudServiceApp {
             } else {
                 res.status(403);
             }
-            return "{\"success\": " + success;
+            return "{\"success\": " + success + "}";
         });
 
         get("/rest/removeUser", (req, res) -> {
@@ -357,7 +362,6 @@ public class CloudServiceApp {
                     for (VM vm : cloudService.getAllVMs()) {
                         String orgName = "";
                         for (Organization o : cloudService.getAllOrganizations()) {
-                            System.out.println(o.getName());
                             if (o.containsResource(vm.getName())) {
                                 orgName = o.getName();
                                 break;
