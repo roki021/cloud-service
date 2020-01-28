@@ -134,7 +134,7 @@ function checkFields(data) {
     if(data.gpuCores < 0) {
         $("#gpuCoresField").addClass("border border-danger");
         var logMsg = $("<small class=\"form-text text-muted log-msg\"></small>");
-        logMsg.text("Value must be bigger than 0");
+        logMsg.text("Value must be equals or bigger than 0");
         $("#gpuCoresField").parent().append(logMsg);
         correct = false;
     }

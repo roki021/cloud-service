@@ -22,7 +22,8 @@ function setUpVMView(canvas, vms) {
     var div = $(`<div class="mt-sm-3 mr-sm-1 ml-sm-1 row justify-content-center"/>`);
 
     var extra = "";
-    if(getUserRole() == "SUPER_ADMIN")
+    var currentUser = window.localStorage.getItem("role");
+    if(currentUser == "SUPER_ADMIN")
         extra = "<th>Organization</th>";
 
     var table = $(`<table class="table table-hover table-dark"/>`);
@@ -34,14 +35,17 @@ function setUpVMView(canvas, vms) {
                 <th>Cores</th>
                 <th>RAM</th>
                 <th>GPU</th>
-                <th>Organization</th>
+                ${extra}
                 <th>Actions</th>
             </tr>
         </thead>
     `);
     var tbody = $("<tbody/>");
     table.append(tbody);
+    extra = "";
     for(let vm of vms) {
+        if(currentUser == "SUPER_ADMIN")
+            extra = "<td>" + vm.organization + "</td>"
         var row =
         `
             <tr>
@@ -49,7 +53,7 @@ function setUpVMView(canvas, vms) {
                 <td>${vm.cores}</td>
                 <td>${vm.ram}</td>
                 <td>${vm.gpu}</td>
-                <td>${vm.organization}</td>
+                ${extra}
                 <td><a href="#" onclick="setUpEditForm('${vm.name}')"><i class="fa fa-pencil pr-2"></i></a><a href="#" onclick=""><i class="fa fa-trash-o"></i></a></td>
             </tr>
         `;
@@ -59,9 +63,11 @@ function setUpVMView(canvas, vms) {
     div.append(table);
     canvas.append(div);
 
-    var addVmButton = `<button class="mr-sm-1 float-right btn btn-primary col-sm-auto"
-         onclick="addVmClick()">Add Virtual Machine</button>`;
-    canvas.append(addVmButton);
+    if(currentUser != "USER") {
+        var addVmButton = `<button class="mr-sm-1 float-right btn btn-primary col-sm-auto"
+             onclick="addVmClick()">Add Virtual Machine</button>`;
+        canvas.append(addVmButton);
+    }
 }
 
 function addVmClick() {

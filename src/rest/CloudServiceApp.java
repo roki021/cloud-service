@@ -360,9 +360,7 @@ public class CloudServiceApp {
 
             if (user != null) {
                 if (user.getRole() == User.Role.SUPER_ADMIN) {
-                    JsonObject ret = new JsonObject();
                     JsonArray array = new JsonArray();
-                    int i = 0;
                     for (VM vm : cloudService.getAllVMs()) {
                         String orgName = "";
                         for (Organization o : cloudService.getAllOrganizations()) {
@@ -377,13 +375,24 @@ public class CloudServiceApp {
                         v.addProperty("ram", cloudService.getVMCategory(vm.getCategoryName()).getRam());
                         v.addProperty("gpu", cloudService.getVMCategory(vm.getCategoryName()).getGpuCores());
                         v.addProperty("organization", orgName);
-                        ret.add(Integer.toString(i++), v);
                         array.add(v);
                     }
 
                     return array;
                 } else {
-                    return g.toJson(cloudService.getAllVMs()); // TODO: filtrirati prema organizaciji
+                    JsonArray array = new JsonArray();
+                    for (VM vm : cloudService.getAllVMs()) {
+                        if(cloudService.getOrganization(user.getOrganization()).containsResource(vm.getName())) {
+                            JsonObject v = new JsonObject();
+                            v.addProperty("name", vm.getName());
+                            v.addProperty("cores", cloudService.getVMCategory(vm.getCategoryName()).getCores());
+                            v.addProperty("ram", cloudService.getVMCategory(vm.getCategoryName()).getRam());
+                            v.addProperty("gpu", cloudService.getVMCategory(vm.getCategoryName()).getGpuCores());
+                            array.add(v);
+                        }
+                    }
+
+                    return array;
                 }
             }
 

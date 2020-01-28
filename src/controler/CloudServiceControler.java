@@ -332,6 +332,15 @@ public class CloudServiceControler {
         return virtualMachines.values();
     }
 
+    public Collection<VM> getVMs(String organization) {
+        ArrayList<VM> vms = new ArrayList<VM>();
+        for(VM vm : virtualMachines.values()) {
+            if(organizations.get(organization).containsResource(vm.getName()))
+                vms.add(vm);
+        }
+        return vms;
+    }
+
     public boolean addVM(VM vm) {
         boolean retVal = false;
         if(vm != null) {
