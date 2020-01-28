@@ -210,6 +210,44 @@ public class CloudServiceControler {
         }
     }
 
+    public boolean hasUserEmail(String email) {
+        return users.containsKey(email) || superAdmins.containsKey(email);
+    }
+
+    public boolean changeProfile(User user, User newData) {
+        boolean isChanged = false;
+        String oldKey = user.getEmail();
+        if(!hasUserEmail(newData.getEmail()) ||
+            oldKey.equals(newData.getEmail())) {
+            user.changeData(newData);
+            if(user.getRole() == User.Role.SUPER_ADMIN) {
+                superAdmins.remove(oldKey);
+                superAdmins.put(user.getEmail(), user);
+            }
+            else {
+                users.remove(oldKey);
+                users.put(user.getEmail(), user);
+                saveFile(users.values(), DATA_PATH + USERS_FILE);
+            }
+            isChanged = true;
+        }
+
+        return isChanged;
+    }
+
+    public int changePassword(User user, PasswordChange newPassword) {
+        int returnCode = newPassword.isChangeValid(user.getPassword());
+
+        if(returnCode == 0) {
+            user.setPassword(newPassword.getNewPassword());
+            if(user.getRole() != User.Role.SUPER_ADMIN) {
+                saveFile(users.values(), DATA_PATH + USERS_FILE);
+            }
+        }
+
+        return returnCode;
+    }
+
     /* ********************* ORGANIZATION ********************* */
 
     private void loadOrganizations(String filePath) {
@@ -389,6 +427,12 @@ public class CloudServiceControler {
         }
     }
 
+    private void saveAfterDiscChange() {
+        saveFile(discs.values(), DATA_PATH + DISC_FILE);
+        saveFile(organizations.values(), DATA_PATH + ORG_FILE);
+        saveFile(virtualMachines.values(), DATA_PATH + VM_FILE);
+    }
+
     public Disc getDisc(String key) {
         Disc disc = null;
 
@@ -425,12 +469,6 @@ public class CloudServiceControler {
                 }
             }
         }
-    }
-
-    public void saveAfterDiscChange() {
-        saveFile(discs.values(), DATA_PATH + DISC_FILE);
-        saveFile(organizations.values(), DATA_PATH + ORG_FILE);
-        saveFile(virtualMachines.values(), DATA_PATH + VM_FILE);
     }
 
     public boolean addDisc(Disc disc) {

@@ -74,6 +74,12 @@ public class User {
         this.role = role;
     }
 
+    public void changeData(User user) {
+        this.email = user.email;
+        this.firstName = user.firstName;
+        this.lastName = user.lastName;
+    }
+
     public boolean equals(Object obj) {
 
         if(obj instanceof User) {

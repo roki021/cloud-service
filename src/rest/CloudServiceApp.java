@@ -68,6 +68,51 @@ public class CloudServiceApp {
             return "{\"loggedOut\": " + logOut + "}";
         });
 
+        get("/rest/getProfile", (req, res) -> {
+           res.type("application/json");
+           User user = isUserLoggedIn(req);
+
+           if(user != null) {
+               return g.toJson(user);
+           }
+
+           return responseStatus(res, 403, "Unauthorized access");
+        });
+
+        post("/rest/editProfile", (req, res) -> {
+            res.type("application/json");
+            User changed = null;
+            try {
+                changed = g.fromJson(req.body(), User.class);
+            } catch (Exception ex) {
+                return responseStatus(res, 400, "Bad arguments");
+            }
+            User user = isUserLoggedIn(req);
+
+            if(user != null) {
+                return "{\"changed\": " + cloudService.changeProfile(user, changed) + "}";
+            }
+
+            return responseStatus(res, 403, "Unauthorized access");
+        });
+
+        post("/rest/changePassword", (req, res) -> {
+            res.type("application/json");
+            PasswordChange newPass = null;
+            try {
+                newPass = g.fromJson(req.body(), PasswordChange.class);
+            } catch (Exception ex) {
+                return responseStatus(res, 400, "Bad arguments");
+            }
+            User user = isUserLoggedIn(req);
+
+            if(user != null) {
+                return "{\"changed\": " + cloudService.changePassword(user, newPass) + "}";
+            }
+
+            return responseStatus(res, 403, "Unauthorized access");
+        });
+
         /* ********************* WORKING WITH USERS ********************* */
 
         get("/rest/getUsers", (req, res) -> {

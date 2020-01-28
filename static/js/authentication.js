@@ -45,6 +45,140 @@ function isInputEmptyOrWhitespaces(formId) {
     return good;
 }
 
+function validPasswordChange() {
+    var good = true;
+
+    $("#passChange").find("small").remove();
+    $("#passChange").find(".alert").remove();
+
+    $("form#passChange :input").each(function(){
+        var input = $(this);
+        input.removeClass("border border-danger");
+        if($.trim(input.val()) == "") {
+            input.addClass("border border-danger");
+            var logMsg = $("<small class=\"form-text text-muted log-msg\"></small>");
+            logMsg.text("This field is mandatory");
+            input.parent().append(logMsg);
+            good = false;
+        }
+    });
+
+    return good;
+}
+
+function setUpPasswordChange() {
+    var canvas = $("#canvas");
+    canvas.empty();
+    var formHolder = $(`<div class="mt-3 mr-1 ml-1 row justify-content-center"/>`);
+    canvas.append(formHolder);
+    var form = $(`<form id="passChange" class="col-sm-8"/>`);
+    form.append(createInput("password", "oldPassword", "Current", "", "form-control"));
+    form.append(createInput("password", "newPassword", "New", "", "form-control"));
+    form.append(createInput("password", "repeatPassword", "Repeat new", "", "form-control"));
+    form.append(`
+        <input type="button" class="btn btn-primary float-right col-sm-auto" onclick="changePassword()" value="Change password"/>
+    `);
+
+    formHolder.append(form);
+}
+
+function changePassword() {
+    var formData = getFormData($("#passChange"));
+    var jsonData = JSON.stringify(formData);
+
+    if(validPasswordChange()) {
+        $.ajax({
+            url: "rest/changePassword",
+            type: "POST",
+            contentType: "application/json",
+            data: jsonData,
+            dataType: "json",
+            complete: function(data) {
+                response = data.responseJSON;
+                console.log(response);
+                if(response.changed == 1) {
+                    var wrongCred = $("<div class=\"alert alert-danger text-center\" role=\"alert\"></div>");
+                    wrongCred.text("You entered wrong password");
+                    wrongCred.insertBefore("input[type=button]");
+                } else if (response.changed == 2) {
+                    var wrongCred = $("<div class=\"alert alert-danger text-center\" role=\"alert\"></div>");
+                    wrongCred.text("New password does not match the repeated password");
+                    wrongCred.insertBefore("input[type=button]");
+                } else {
+                    var rightCred = $("<div class=\"alert alert-success text-center\" role=\"alert\"></div>");
+                    rightCred.text("Successful editing");
+                    rightCred.insertBefore("input[type=button]");
+                }
+            }
+        });
+    }
+}
+
+function placeEditFormValues() {
+    setUpProfileEdit();
+    $.ajax({
+        url: "rest/getProfile",
+        type: "GET",
+        dataType: "json",
+        complete: function(data) {
+            if(data.status === 403) {
+                response = data.responseJSON;
+                statusMessageStyle(403, response.message);
+            } else {
+                profile = data.responseJSON;
+
+                $("#emailField").val(profile.email);
+                $("#firstNameField").val(profile.firstName);
+                $("#lastNameField").val(profile.lastName);
+            }
+        }
+    });
+}
+
+function setUpProfileEdit() {
+    var canvas = $("#canvas");
+    canvas.empty();
+    var formHolder = $(`<div class="mt-3 mr-1 ml-1 row justify-content-center"/>`);
+    canvas.append(formHolder);
+    var form = $(`<form id="editProfile" class="col-sm-8"/>`);
+    form.append(createInput("email", "email", "Email Address", "Email Address", "form-control"));
+    form.append(createInput("text", "firstName", "First Name", "First Name", "form-control"));
+    form.append(createInput("text", "lastName", "Last Name", "Last Name", "form-control"));
+    form.append(`
+        <input type="button" class="btn btn-primary float-right col-sm-auto" onclick="editProfile()" value="Save change"/>
+    `);
+
+    formHolder.append(form);
+}
+
+function editProfile() {
+    var formData = getFormData($("#editProfile"));
+    var jsonData = JSON.stringify(formData);
+
+    if(isInputEmptyOrWhitespaces("#editProfile")) {
+        $.ajax({
+            url: "rest/editProfile",
+            type: "POST",
+            contentType: "application/json",
+            data: jsonData,
+            dataType: "json",
+            complete: function(data) {
+                response = data.responseJSON;
+
+                if(!response.changed) {
+                    var wrongCred = $("<div class=\"alert alert-danger text-center\" role=\"alert\"></div>");
+                    wrongCred.text("There is user with given email");
+                    wrongCred.insertBefore("input[type=button]");
+                } else {
+                    var rightCred = $("<div class=\"alert alert-success text-center\" role=\"alert\"></div>");
+                    rightCred.text("Successful editing");
+                    rightCred.insertBefore("input[type=button]");
+                }
+            }
+        });
+    }
+}
+
 function logIn() {
     window.sessionStorage.clear();
     var formData = getFormData($("#login"));
