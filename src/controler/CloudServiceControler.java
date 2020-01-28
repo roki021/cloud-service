@@ -346,6 +346,7 @@ public class CloudServiceControler {
         if(vm != null) {
             if(!virtualMachines.containsKey(vm.getName())) {
                 virtualMachines.put(vm.getName(), vm);
+                saveFile(virtualMachines.values(), DATA_PATH + VM_FILE);
                 retVal = true;
             }
         }
@@ -354,7 +355,9 @@ public class CloudServiceControler {
     }
 
     public VM removeVM(String key) {
-        return virtualMachines.remove(key);
+        VM vm = virtualMachines.remove(key);
+        saveFile(virtualMachines.values(), DATA_PATH + VM_FILE);
+        return vm;
     }
 
     public boolean changeVM(String oldKey, VM newVM) {
@@ -363,6 +366,7 @@ public class CloudServiceControler {
             if(!virtualMachines.containsKey(newVM.getName()) || oldKey.equals(newVM.getName())) {
                 removeVM(oldKey);
                 virtualMachines.put(newVM.getName(), newVM);
+                saveFile(virtualMachines.values(), DATA_PATH + VM_FILE);
                 retVal = true;
             }
         }

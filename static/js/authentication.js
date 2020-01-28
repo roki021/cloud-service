@@ -3,7 +3,20 @@ function getFormData($form) {
     var indexedArray = {};
 
     $.map(unindexedArray, function(n, i) {
-        indexedArray[n['name']] = n['value'];
+        if(indexedArray[n['name']] == undefined)
+            indexedArray[n['name']] = n['value'];
+        else {
+            var field = [];
+            if($.isArray(indexedArray[n['name']])) {
+                for(let item of indexedArray[n['name']])
+                    field.push(item);
+            }
+            else {
+                field.push(indexedArray[n['name']]);
+            }
+            field.push(n['value']);
+            indexedArray[n['name']] = field;
+        }
     });
 
     return indexedArray;

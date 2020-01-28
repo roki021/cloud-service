@@ -399,6 +399,27 @@ public class CloudServiceApp {
             return responseStatus(res, 403, "Unauthorized access");
         });
 
+        post("/rest/addVM", (req, res) -> {
+            res.type("application/json");
+            VM vm = null;
+            try {
+                vm = g.fromJson(req.body(), VM.class);
+                if(vm.getName().equals(""))
+                    return "{\"added\": false}";
+            } catch (Exception ex) {
+            }
+            Session ss = req.session(true);
+            User user = ss.attribute("user");
+
+            if (user != null) {
+                if (user.getRole() == User.Role.SUPER_ADMIN) {
+                    return "{\"added\":" + cloudService.addVM(vm) + "}";
+                }
+            }
+
+            return responseStatus(res, 403, "Unauthorized access");
+        });
+
         /* ********************* WORKING WITH VM Categories ********************* */
 
         get("/rest/getVMCats", (req, res) -> {

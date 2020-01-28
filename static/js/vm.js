@@ -87,7 +87,7 @@ function addVmClick() {
                 <div class="form-group row">
                     <label for="exampleFormControlSelect1" class="col-sm-2 col-form-label">Category</label>
                     <div class="col-sm-10 pt-sm-1">
-                        <select onchange="loadFields()" class="form-control" id="categorySelect" name="category">
+                        <select onchange="loadFields()" class="form-control" id="categorySelect" name="categoryName">
                         </select>
                     </div>
                 </div>
@@ -109,22 +109,19 @@ function addVmClick() {
                         <input disabled type="text" name="gpuCores" class="form-control" id="gpuCoresField">
                     </div>
                 </div>
-                <fieldset class="form-group">
-                    <div class="row">
-                        <legend class="col-form-label col-sm-2 pt-0">Attached Discs</legend>
-                        <div class="col-sm-10" id="discsCheckBoxes">
-
-                        </div>
+                <div class="form-group row">
+                    <label for="exampleFormControlInput1" class="col-sm-2 col-form-label">Attached Discs</label>
+                    <div class="col-sm-10 pt-sm-1">
+                        <select id="attachedDiscs" name="attachedDiscs" multiple>
+                        </select>
                     </div>
-                </fieldset>
-
-
-
+                </div>
                 <button type="button" onclick="addVM()" class="btn btn-primary float-right col-sm-auto">Add Virtual Machine</button>
             </form>
         `;
         formHolder.append(form);
         $("#canvas").append(formHolder);
+        //$('#attachedDiscs').selectpicker();
         addVmFillCats();
         addVmFillDiscs();
     }
@@ -185,6 +182,7 @@ function addVmFillCats() {
                 $("#coresField").val(response[0].cores);
                 $("#ramField").val(response[0].ram);
                 $("#gpuCoresField").val(response[0].gpuCores);
+                $('#categorySelect').selectpicker();
             }
         }
     });
@@ -208,21 +206,17 @@ function addVmFillDiscs() {
             else {
                 for(let disc of response) {
                     var conf1 = "";
-                    var conf2 = "";
                     if(!disc.virtualMachine == "")
                     {
-                        conf1 = "disabled";
-                        conf2 = " (used)";
+                        conf1 = "disabled style=\"\"";
                     }
                     var row =
                     `
-                    <div class="form-check">
-                      <input class="form-check-input" name="${disc.name}" type="checkbox" value="true" ${conf1}>
-                      <label class="form-check-label" for="inlineCheckbox1">${disc.name}${conf2}</label>
-                    </div>
+                        <option ${conf1}>${disc.name}</option>
                     `;
-                    $("#discsCheckBoxes").append(row);
+                    $("#attachedDiscs").append(row);
                 }
+                $('#attachedDiscs').selectpicker();
             }
         }
     });
@@ -231,10 +225,9 @@ function addVmFillDiscs() {
 function addVM() {
     var data = getFormData($("#addVmForm"));
     var s = JSON.stringify(data);
-    console.log(data);
 
-    /*$.ajax({
-        url: "rest/addVMCat",
+    $.ajax({
+        url: "rest/addVM",
         type: "POST",
         data: s,
         contentType: "application/json",
@@ -244,8 +237,10 @@ function addVM() {
             if(data.status == 403) {
                 $("#canvas").append('<h1>403 Forbidden</h1>');
             } else {
-                getVMs();
+                if(data.responseJSON.added) {
+                    getVMs()
+                }
             }
         }
-    });*/
+    });
 }

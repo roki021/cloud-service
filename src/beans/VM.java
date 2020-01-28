@@ -54,4 +54,13 @@ public  class VM extends Resource{
     public void addActivity(Activity activity) {
         this.activities.add(activity);
     }
+
+    @Override
+    public String toString() {
+        return "VM{" +
+                "categoryName='" + categoryName + '\'' +
+                ", attachedDiscs=" + attachedDiscs +
+                ", activities=" + activities +
+                '}';
+    }
 }
