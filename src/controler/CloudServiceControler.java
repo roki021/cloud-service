@@ -512,6 +512,11 @@ public class CloudServiceControler {
     }
 
     public VMCategory removeVMCategory(String key) {
+        for(VM vm : virtualMachines.values()) {
+            if(vm.getCategoryName().equals(key)) {
+                return null;
+            }
+        }
         VMCategory cat = vmCategories.remove(key);
         saveFile(vmCategories.values(), DATA_PATH + CATS_FILE);
         return cat;

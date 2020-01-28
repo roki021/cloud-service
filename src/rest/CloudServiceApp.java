@@ -226,24 +226,28 @@ public class CloudServiceApp {
             Session ss = req.session();
             User user = ss.attribute("user");
             String email = req.queryParams("email");
-            String success = "false";
+            boolean success = false;
 
             if (user == null) {
                 res.status(403);
+            } else if (email.equals("")) {
+                res.status(400);
             } else if (user.getRole() == User.Role.SUPER_ADMIN) {
                 if (user.getEmail().equals(email)) {
                     res.status(400);
                 } else {
-                    cloudService.removeUser(email);
-                    success = "true";
+                    User u = cloudService.removeUser(email);
+                    if(u != null)
+                        success = true;
                 }
             } else if (user.getRole() == User.Role.ADMIN) {
                 if (user.getEmail().equals(email)) {
                     res.status(400);
                 } else {
                     if (cloudService.getUser(email).getOrganization().equals(user.getOrganization())) {
-                        cloudService.removeUser(email);
-                        success = "true";
+                        User u = cloudService.removeUser(email);
+                        if(u != null)
+                            success = true;
                     }
                 }
             } else {
@@ -455,6 +459,8 @@ public class CloudServiceApp {
             VMCategory cat = null;
             try {
                 cat = g.fromJson(req.body(), VMCategory.class);
+                if(cat.getName().equals(""))
+                    return "{\"added\": false}";
             } catch (Exception ex) {
             }
             Session ss = req.session(true);

@@ -339,8 +339,10 @@ function removeUser(email) {
             } else if(data.status == 400) {
                 $("#canvas").empty();
                 $("#canvas").append('<h1>400 Bad Request</h1>');
-            } else if(response.success == true) {
-                getUsers();
+            } else {
+                if(response.success == true) {
+                    getUsers();
+                }
             }
         }
     });

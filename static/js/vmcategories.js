@@ -57,7 +57,7 @@ function setUpVMCatsView(canvas, cats) {
     div.append(table);
     canvas.append(div);
 
-    var addVmCatButton = `<button class="mr-sm-1 float-right btn btn-primary col-sm-auto"
+    var addVmCatButton = `<button id="dugme" class="mr-sm-1 float-right btn btn-primary col-sm-auto"
      onclick="addVmCatClick()">Add VM Category</button>`;
     canvas.append(addVmCatButton);
 }
@@ -79,28 +79,28 @@ function addVmCatClick() {
                             <div class="form-group row">
                                 <label for="exampleFormControlInput1" class="col-sm-2 col-form-label">Name</label>
                                 <div class="col-sm-10 pt-sm-1">
-                                    <input type="text" name="name" class="form-control" id="exampleFormControlInput1">
+                                    <input type="text" name="name" class="form-control" id="nameField">
                                 </div>
                             </div>
                             <div class="form-group row">
                                 <label for="exampleFormControlInput1" class="col-sm-2 col-form-label">Cores</label>
                                 <div class="col-sm-10 pt-sm-1">
-                                    <input type="number" name="cores" class="form-control" id="exampleFormControlInput2">
+                                    <input type="number" name="cores" class="form-control" id="coresField">
                                 </div>
                             </div>
                             <div class="form-group row">
                                 <label for="exampleFormControlInput1" class="col-sm-2 col-form-label">RAM</label>
                                 <div class="col-sm-10 pt-sm-1">
-                                    <input type="number" name="ram" class="form-control" id="exampleFormControlInput3">
+                                    <input type="number" name="ram" class="form-control" id="ramField">
                                 </div>
                             </div>
                             <div class="form-group row">
                                 <label for="exampleFormControlInput1" class="col-sm-2 col-form-label">GPU Cores</label>
                                 <div class="col-sm-10 pt-sm-1">
-                                    <input type="number" name="gpuCores" class="form-control" id="exampleFormControlInput4">
+                                    <input type="number" name="gpuCores" class="form-control" id="gpuCoresField">
                                 </div>
                             </div>
-                            <button type="button" onclick="addCategory()" class="btn btn-primary float-right col-sm-auto">Add Category</button>
+                            <input type="button" onclick="addCategory()" class="btn btn-primary float-right col-sm-auto" value="Add Category"/>
                         </form>
                     `;
                     formHolder.append(form);
@@ -114,47 +114,100 @@ function addVmCatClick() {
     });
 }
 
+
+function checkFields(data) {
+    var correct = true;
+    if(data.cores <= 0) {
+        $("#coresField").addClass("border border-danger");
+        var logMsg = $("<small class=\"form-text text-muted log-msg\"></small>");
+        logMsg.text("Value must be bigger than 0");
+        $("#coresField").parent().append(logMsg);
+        correct = false;
+    }
+    if(data.ram <= 0) {
+        $("#ramField").addClass("border border-danger");
+        var logMsg = $("<small class=\"form-text text-muted log-msg\"></small>");
+        logMsg.text("Value must be bigger than 0");
+        $("#ramField").parent().append(logMsg);
+        correct = false;
+    }
+    if(data.gpuCores < 0) {
+        $("#gpuCoresField").addClass("border border-danger");
+        var logMsg = $("<small class=\"form-text text-muted log-msg\"></small>");
+        logMsg.text("Value must be bigger than 0");
+        $("#gpuCoresField").parent().append(logMsg);
+        correct = false;
+    }
+    return correct;
+}
+
+
 function addCategory() {
     var data = getFormData($("#addVmCatForm"));
     var s = JSON.stringify(data);
-    console.log(data);
 
-    $.ajax({
-        url: "rest/addVMCat",
-        type: "POST",
-        data: s,
-        contentType: "application/json",
-        dataType: "json",
-        complete: function(data) {
-            $("#canvas").empty();
-            if(data.status == 403) {
-                $("#canvas").append('<h1>403 Forbidden</h1>');
-            } else {
-                getVMCats();
-            }
+    if(isInputEmptyOrWhitespaces("#addVmCatForm")) {
+        if(checkFields(data)) {
+            $.ajax({
+                url: "rest/addVMCat",
+                type: "POST",
+                data: s,
+                contentType: "application/json",
+                dataType: "json",
+                complete: function(data) {
+                    if(data.status == 403) {
+                        $("#canvas").empty();
+                        $("#canvas").append('<h1>403 Forbidden</h1>');
+                    } else {
+                        response = data.responseJSON;
+                        if(response.added) {
+                            getVMCats();
+                        } else {
+                            var wrongCred = $("<div class=\"alert alert-danger text-center\" role=\"alert\"></div>");
+                            wrongCred.text("There is already VM Category with this name");
+                            wrongCred.insertBefore("input[type=button]");
+                        }
+                    }
+                }
+            });
         }
-    });
+    } else {
+        checkFields(data);
+    }
 }
 
 function editVMCat() {
     var data = getFormData($("#editVmCatForm"));
     var s = JSON.stringify(data);
 
-    $.ajax({
-        url: "rest/editVMCat",
-        type: "POST",
-        data: s,
-        contentType: "application/json",
-        dataType: "json",
-        complete: function(data) {
-            $("#canvas").empty();
-            if(data.status == 403) {
-                $("#canvas").append('<h1>403 Forbidden</h1>');
-            } else {
-                getVMCats();
-            }
+    if(isInputEmptyOrWhitespaces("#editVmCatForm")) {
+        if(checkFields(data)) {
+            $.ajax({
+                url: "rest/editVMCat",
+                type: "POST",
+                data: s,
+                contentType: "application/json",
+                dataType: "json",
+                complete: function(data) {
+                    if(data.status == 403) {
+                        $("#canvas").empty();
+                        $("#canvas").append('<h1>403 Forbidden</h1>');
+                    } else {
+                        response = data.responseJSON;
+                        if(response.success) {
+                            getVMCats();
+                        } else {
+                            var wrongCred = $("<div class=\"alert alert-danger text-center\" role=\"alert\"></div>");
+                            wrongCred.text("There is already VM Category with this name");
+                            wrongCred.insertBefore("input[type=button]");
+                        }
+                    }
+                }
+            });
         }
-    });
+    } else {
+        checkFields(data);
+    }
 }
 
 function editVmCatFill(name) {
@@ -215,7 +268,7 @@ function editVmCatClick(name) {
                         <input type="number" name="gpuCores" class="form-control" id="gpuCoresField">
                     </div>
                 </div>
-                <button type="button" onclick="editVMCat()" class="btn btn-primary float-right col-sm-auto">Save Changes</button>
+                <input type="button" onclick="editVMCat()" class="btn btn-primary float-right col-sm-auto" value="Save Changes"/>
             </form>
         `;
         formHolder.append(form);
@@ -236,12 +289,15 @@ function removeCategory(name) {
         dataType: "json",
         complete: function(data) {
             response = data.responseJSON;
+            $("#poruka").remove();
             if(response.removed == true) {
                 getVMCats();
             }
             else
             {
-                console.log("greska");
+                var wrongCred = $("<div id=\"poruka\" class=\"alert alert-danger text-center w-50\" role=\"alert\"></div>");
+                wrongCred.text("VM Category have attached VMs");
+                wrongCred.insertAfter("#dugme");
             }
         }
     });

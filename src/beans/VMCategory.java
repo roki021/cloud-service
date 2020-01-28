@@ -47,4 +47,5 @@ public class VMCategory {
     public void setGpuCores(int gpuCores) {
         this.gpuCores = gpuCores;
     }
+
 }
