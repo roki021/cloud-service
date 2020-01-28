@@ -114,6 +114,7 @@ function removeDisc(discName) {
 
 function setUpDiscView(canvas, discs) {
     var div = $(`<div class="mt-sm-3 mr-sm-1 ml-sm-1 row justify-content-center"/>`);
+    var role = window.localStorage.getItem("role");
 
     var table = $(`<table class="table table-hover table-dark"/>`);
     table.append(
@@ -130,37 +131,40 @@ function setUpDiscView(canvas, discs) {
     var tbody = $("<tbody/>");
     table.append(tbody);
     for(let disc of discs) {
-        tbody.append(createTableRowDisc(disc));
+        tbody.append(createTableRowDisc(disc, role));
     }
 
     div.append(table);
     canvas.append(div);
 
-    if(window.localStorage.getItem("role") != "USER") {
-        var addOrgButton = `<button class="mr-sm-1 float-right btn btn-primary col-sm-auto"
-         onclick="setUpAddFormDisc('Add disc', 'addDisc', 'rest/addDisc')">Add Disc</button>`;
-        canvas.append(addOrgButton);
+    if(role != "USER") {
+        var addDiscButton = `<button class="mr-sm-1 float-right btn btn-primary col-sm-auto"
+            onclick="setUpAddFormDisc('Add disc', 'addDisc', 'rest/addDisc')">Add Disc</button>`;
+        canvas.append(addDiscButton);
     }
 }
 
 function setUpAddFormDisc(buttonText, func, route) {
-    if(window.localStorage.getItem("role") != "USER") {
-        var canvas = $("#canvas");
-        canvas.empty();
-        var formHolder = $(`<div class="mt-3 mr-1 ml-1 row justify-content-center"/>`);
-        canvas.append(formHolder);
-        var form = $(`<form id="discAdd" class="col-sm-8"/>`);
-        form.append(createInput("text", "name", "Name", "Name", "form-control"));
-        form.append(createSelect("virtualMachine", "Attached to VM", "form-control"));
-        form.append(createSelect("discType", "Disc type", "form-control"));
-        form.append(createSelect("capacity", "Capacity", "form-control"));
+    var canvas = $("#canvas");
+    canvas.empty();
+    var formHolder = $(`<div class="mt-3 mr-1 ml-1 row justify-content-center"/>`);
+    canvas.append(formHolder);
+    var form = $(`<form id="discAdd" class="col-sm-8"/>`);
+    form.append(createInput("text", "name", "Name", "Name", "form-control"));
+    form.append(createSelect("virtualMachine", "Attached to VM", "form-control"));
+    form.append(createSelect("discType", "Disc type", "form-control"));
+    form.append(createSelect("capacity", "Capacity", "form-control"));
+
+    fillDropDowns();
+
+    formHolder.append(form);
+
+    if(window.localStorage.getItem("role") == "USER") {
+        $("#discAdd :input").prop("disabled", true);
+    } else {
         form.append(`
             <input type="button" class="btn btn-primary float-right col-sm-auto" onclick="${func}('${route}')" value="${buttonText}"/>
         `);
-
-        fillDropDowns();
-
-        formHolder.append(form);
     }
 }
 
@@ -226,15 +230,26 @@ function fillDropDowns(callback=null) {
     });
 }
 
-function createTableRowDisc(disc) {
+function createTableRowDisc(disc, userRole) {
     var vm = disc.virtualMachine == null ? "-" : disc.virtualMachine;
+    var actions_admins = `
+        <td>
+            <a class="pr-sm-1" href="#" onclick="setUpEditFormDisc('${disc.name}')"><i class="fa fa-pencil pr-2"></i></a>
+            <a href="#" onclick="removeDisc('${disc.name}')"><i class="fa fa-trash-o"></i></a>
+        </td>
+    `;
+    var actions_user = `
+        <td>
+            <a class="pr-sm-1" href="#" onclick="setUpEditFormDisc('${disc.name}')"><i class="fa fa-eye pr-2"></i></a>
+        </td>;
+    `;
     var row =
     `
         <tr>
             <td>${disc.name}</td>
             <td>${disc.capacity}</td>
             <td>${vm}</td>
-            <td><a class="pr-sm-1" href="#" onclick="setUpEditFormDisc('${disc.name}')"><i class="fa fa-pencil pr-2"></i></a><a href="#" onclick="removeDisc('${disc.name}')"><i class="fa fa-trash-o"></i></a></td>
+            ${userRole != "USER" ? actions_admins : actions_user}
         </tr>
     `;
 

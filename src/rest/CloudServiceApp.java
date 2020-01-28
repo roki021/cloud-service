@@ -579,7 +579,7 @@ public class CloudServiceApp {
                         return responseStatus(res, 400, "Bad request");
                     }
                 }
-                else if(user.getRole() == User.Role.ADMIN){
+                else {
                     if (disc != null) {
                         Organization org = cloudService.getOrganization(user.getOrganization());
                         if(org.containsResource(disc.getName())) {
