@@ -18,12 +18,12 @@ public class CloudServiceControler {
     private static final String VM_FILE = "/vm.json";
 
 
-    private TreeMap<String, User> users;
-    private TreeMap<String, Organization> organizations;
-    private TreeMap<String, VM> virtualMachines;
-    private TreeMap<String, VMCategory> vmCategories;
-    private TreeMap<String, Disc> discs;
-    private TreeMap<String, User> superAdmins;
+    private HashMap<String, User> users;
+    private HashMap<String, Organization> organizations;
+    private HashMap<String, VM> virtualMachines;
+    private HashMap<String, VMCategory> vmCategories;
+    private HashMap<String, Disc> discs;
+    private HashMap<String, User> superAdmins;
     private Gson g;
 
     private static String generateRandomString() {
@@ -72,12 +72,12 @@ public class CloudServiceControler {
     }
 
     public CloudServiceControler() {
-        users = new TreeMap<String, User>();
-        organizations = new TreeMap<String, Organization>();
-        virtualMachines = new TreeMap<String, VM>();
-        vmCategories = new TreeMap<String, VMCategory>();
-        discs = new TreeMap<String, Disc>();
-        superAdmins = new TreeMap<String, User>();
+        users = new HashMap<String, User>();
+        organizations = new HashMap<String, Organization>();
+        virtualMachines = new HashMap<String, VM>();
+        vmCategories = new HashMap<String, VMCategory>();
+        discs = new HashMap<String, Disc>();
+        superAdmins = new HashMap<String, User>();
 
         g = new GsonBuilder().setPrettyPrinting().create();
 
@@ -439,15 +439,42 @@ public class CloudServiceControler {
         boolean retVal = false;
         if(newVM != null) {
             if(!virtualMachines.containsKey(newVM.getName()) || oldKey.equals(newVM.getName())) {
+                ArrayList<String> oldAttachedDiscs = new ArrayList<String>();
+                oldAttachedDiscs = (ArrayList<String>) getVM(oldKey).getAttachedDiscs();
                 removeVM(oldKey);
                 virtualMachines.put(newVM.getName(), newVM);
+                if(!newVM.getName().equals(oldKey)) {
+                    for (Disc d : discs.values()) {
+                        if (d.getVirtualMachine() != null)
+                            if (d.getVirtualMachine().equals(oldKey))
+                                d.setVirtualMachine(newVM.getName());
+                    }
+                    for (Organization o : organizations.values()) {
+                        if (o.containsResource(oldKey)) {
+                            o.removeResource(oldKey);
+                            o.addResource(newVM.getName());
+                        }
+                    }
+                }
+                for (Disc d : discs.values()) {
+                    if(oldAttachedDiscs.contains(d.getName()))
+                        d.setVirtualMachine("");
+                    if(newVM.getAttachedDiscs().contains(d.getName()))
+                        d.setVirtualMachine(newVM.getName());
+                }
+
                 saveFile(virtualMachines.values(), DATA_PATH + VM_FILE);
+                saveFile(discs.values(), DATA_PATH + DISC_FILE);
+                saveFile(organizations.values(), DATA_PATH + ORG_FILE);
+
                 retVal = true;
             }
         }
 
         return retVal;
     }
+
+
 
     /* ********************* DISC ********************* */
 
@@ -564,6 +591,13 @@ public class CloudServiceControler {
                 if(usingDiscs.contains(disc.getName()))
                     disc.setVirtualMachine(vmName);
             }
+            saveFile(discs.values(), DATA_PATH + DISC_FILE);
+        }
+    }
+
+    public void setUsingDisc(String disc, String vmName) {
+        if(discs != null) {
+            discs.get(disc).setVirtualMachine(vmName);
             saveFile(discs.values(), DATA_PATH + DISC_FILE);
         }
     }

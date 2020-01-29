@@ -435,7 +435,7 @@ public class CloudServiceApp {
                 } else {
                     JsonArray array = new JsonArray();
                     for (VM vm : cloudService.getAllVMs()) {
-                        if(cloudService.getOrganization(user.getOrganization()).equals(vm.getName())) {
+                        if(vm.getOrganizationName().equals(user.getOrganization())) {
                             JsonObject v = new JsonObject();
                             v.addProperty("name", vm.getName());
                             v.addProperty("cores", cloudService.getVMCategory(vm.getCategoryName()).getCores());
@@ -446,6 +446,30 @@ public class CloudServiceApp {
                     }
 
                     return array;
+                }
+            }
+
+            return responseStatus(res, 403, "Unauthorized access");
+        });
+
+        post("/rest/getVM", (req, res) -> {
+            res.type("application/json");
+            Session ss = req.session(true);
+            VM vm = null;
+            try {
+                vm = g.fromJson(req.body(), VM.class);
+                ss.attribute("vmToChange", vm.getName());
+            } catch (Exception ex) {
+            }
+            User user = isUserLoggedIn(req);
+
+            if (user != null) {
+                if (user.getRole() == User.Role.SUPER_ADMIN) {
+                    if (vm != null) {
+                        return g.toJson(cloudService.getVM(vm.getName()));
+                    } else {
+                        return responseStatus(res, 400, "Bad request");
+                    }
                 }
             }
 
@@ -464,7 +488,6 @@ public class CloudServiceApp {
                 return "{\"added\": false}";
             Session ss = req.session(true);
             User user = ss.attribute("user");
-            System.out.println(vm);
 
             if (user != null) {
                 if (user.getRole() == User.Role.SUPER_ADMIN) {
@@ -491,6 +514,30 @@ public class CloudServiceApp {
             return responseStatus(res, 403, "Unauthorized access");
         });
 
+        post("/rest/editVM", (req, res) -> {
+            res.type("application/json");
+            VM vm = null;
+            try {
+                vm = g.fromJson(req.body(), VM.class);
+            } catch (Exception ex) {
+                return responseStatus(res, 400, "Bad request");
+            }
+            User user = isUserLoggedIn(req);
+
+
+            if (user != null) {
+                String key = req.session(true).attribute("vmToChange");
+                vm.setOrganizationName(cloudService.getVM(key).getOrganizationName());
+                if (user.getRole() == User.Role.SUPER_ADMIN) {
+                    if (key != null) {
+                        return "{\"added\":" + cloudService.changeVM(key, vm) + "}";
+                    }
+                }
+            }
+
+            return responseStatus(res, 403, "Unauthorized access");
+        });
+
         post("/rest/removeVM", (req, res) -> {
             res.type("application/json");
             User user = isUserLoggedIn(req);
@@ -503,7 +550,7 @@ public class CloudServiceApp {
                 if (user.getRole() == User.Role.SUPER_ADMIN) {
                     VM v = cloudService.removeVM(vm.getName());
                     if(v != null) {
-                        cloudService.removeOrganizationResource(v.getOrganizationName(), v.getName());
+                        cloudService.removeOrganizationResource(v.getOrganizationName(), v.getName()); // TODO: implementirati brisanje iz org i deaktiviranje diskova
                         cloudService.setNotUsingDiscs(vm.getAttachedDiscs(), vm.getName());
                     }
                     return "{\"deleted\":" + (v != null) + "}";
@@ -640,6 +687,26 @@ public class CloudServiceApp {
         get("/rest/getDiscs", (req, res) -> {
             res.type("application/json");
             User user = isUserLoggedIn(req);
+
+            if (user != null) {
+                if (user.getRole() == User.Role.SUPER_ADMIN) {
+                    return g.toJson(cloudService.getAllDiscs());
+                } else {
+                    return g.toJson(cloudService.getOrganizationDiscs(user.getOrganization()));
+                }
+            }
+
+            return responseStatus(res, 403, "Unauthorized access");
+        });
+
+        post("/rest/getDiscsVm", (req, res) -> {
+            res.type("application/json");
+            User user = isUserLoggedIn(req);
+            VM vm = null;
+            try {
+                vm = g.fromJson(req.body(), VM.class);
+            } catch (Exception ex) {
+            }
 
             if (user != null) {
                 if (user.getRole() == User.Role.SUPER_ADMIN) {
