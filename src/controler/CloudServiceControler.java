@@ -461,7 +461,7 @@ public class CloudServiceControler {
                 }
                 for (Disc d : discs.values()) {
                     if(oldAttachedDiscs.contains(d.getName()))
-                        d.setVirtualMachine("");
+                        d.setVirtualMachine(null);
                     if(newVM.getAttachedDiscs().contains(d.getName()))
                         d.setVirtualMachine(newVM.getName());
                 }

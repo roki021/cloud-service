@@ -46,7 +46,7 @@ function setUpVMCatsView(canvas, cats) {
             <tr>
                 <td>${cat.name}</td>
                 <td>${cat.cores}</td>
-                <td>${cat.ram}</td>
+                <td>${cat.ram} GB</td>
                 <td>${cat.gpuCores}</td>
                 <td><a href="#" onclick="editVmCatClick('${cat.name}')"><i class="fa fa-pencil pr-2"></i></a><a href="#" onclick="removeCategory('${cat.name}')"><i class="fa fa-trash-o"></i></a></td>
             </tr>

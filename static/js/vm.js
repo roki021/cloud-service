@@ -80,7 +80,7 @@ function addVmClick() {
             <div class="form-group row">
                 <label for="exampleFormControlSelect1" class="col-sm-2 col-form-label">Organization</label>
                 <div class="col-sm-10 pt-sm-1">
-                    <select onchange="loadFields()" class="form-control" id="organizationSelect" name="organizationName">
+                    <select onchange="addVmFillDiscs()" class="form-control" id="organizationSelect" name="organizationName">
                     </select>
                 </div>
             </div>
@@ -136,9 +136,9 @@ function addVmClick() {
     formHolder.append(form);
     $("#canvas").append(formHolder);
     addVmFillCats();
-    addVmFillDiscs();
     if(currentUser == "SUPER_ADMIN")
         addVmFillOrgs();
+    addVmFillDiscs();
 }
 
 function loadFields() {
@@ -206,6 +206,7 @@ function addVmFillOrgs() {
     $.ajax({
         url: "rest/getOrgs",
         type: "GET",
+        async: false,
         dataType: "json",
         complete: function(data) {
             response = data.responseJSON;
@@ -235,6 +236,48 @@ function addVmFillDiscs() {
     $.ajax({
         url: "rest/getDiscs",
         type: "GET",
+        dataType: "json",
+        complete: function(data) {
+            response = data.responseJSON;
+            if(data.status == 403) {
+                $("#canvas").empty();
+                $("#canvas").append('<h1>403 Forbidden</h1>');
+            }
+            else if(data.status == 404) {
+                $("#canvas").empty();
+                $("#canvas").append('<h1>404 Not Found</h1>');
+            }
+            else {
+                $('#attachedDiscs').empty();
+                for(let disc of response) {
+                    var conf1 = "";
+                    var role = window.localStorage.getItem("role");
+                    if(role != "SUPER_ADMIN" || disc.organizationName == $("#organizationSelect").val()) {
+                        if(!disc.virtualMachine == "")
+                        {
+                            conf1 = "disabled style=\"\"";
+                        }
+                        var row =
+                        `
+                            <option ${conf1}>${disc.name}</option>
+                        `;
+                        $("#attachedDiscs").append(row);
+                    }
+                }
+                $('#attachedDiscs').selectpicker();
+                $('#attachedDiscs').selectpicker('refresh');
+            }
+        }
+    });
+}
+
+function addVmFillDiscsSuperAdmin(orgName) {
+    var s = JSON.stringify({name: orgName});
+    $.ajax({
+        url: "rest/getDiscsOrg",
+        type: "POST",
+        data: s,
+        contentType: "application/json",
         dataType: "json",
         complete: function(data) {
             response = data.responseJSON;
@@ -394,20 +437,24 @@ function editVmFillDiscs(vmName) {
             }
             else {
                 for(let disc of response) {
+                    console.log(disc);
                     var conf1 = "";
-                    if(!disc.virtualMachine == "")
-                    {
-                        conf1 = "disabled";
+                    var role = window.localStorage.getItem("role");
+                    if(role != "SUPER_ADMIN" || disc.organizationName == $("#organizationSelect").val()) {
+                        if(!disc.virtualMachine == "")
+                        {
+                            conf1 = "disabled";
+                        }
+                        if(disc.virtualMachine == vmName)
+                        {
+                            conf1 = "";
+                        }
+                        var row =
+                        `
+                            <option value="${disc.name}" ${conf1}>${disc.name}</option>
+                        `;
+                        $("#attachedDiscs").append(row);
                     }
-                    if(disc.virtualMachine == vmName)
-                    {
-                        conf1 = "";
-                    }
-                    var row =
-                    `
-                        <option value="${disc.name}" ${conf1}>${disc.name}</option>
-                    `;
-                    $("#attachedDiscs").append(row);
                 }
                 setFields(vmName);
             }

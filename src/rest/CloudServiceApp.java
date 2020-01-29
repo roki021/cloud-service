@@ -489,6 +489,18 @@ public class CloudServiceApp {
                     } else {
                         return responseStatus(res, 400, "Bad request");
                     }
+                } else {
+                    if (vm != null) {
+                        if(cloudService.getVM(vm.getName()).getOrganizationName().equals(user.getOrganization())) {
+                            return g.toJson(cloudService.getVM(vm.getName()));
+                        }
+                        else {
+                            return responseStatus(res, 403, "Unauthorized access");
+                        }
+                    }
+                    else {
+                        return responseStatus(res, 400, "Bad request");
+                    }
                 }
             }
 
@@ -520,6 +532,7 @@ public class CloudServiceApp {
                     return "{\"added\":" + success + "}";
                 }
                 else if (user.getRole() == User.Role.ADMIN) {
+                    vm.setOrganizationName(user.getOrganization());
                     boolean success = cloudService.addVM(vm);
                     if(success) {
                         cloudService.addOrganizationResource(user.getOrganization(), vm.getName());
@@ -552,6 +565,14 @@ public class CloudServiceApp {
                         return "{\"added\":" + cloudService.changeVM(key, vm) + "}";
                     }
                 }
+                else if (user.getRole() == User.Role.ADMIN) {
+                    if (key != null) {
+                        if(cloudService.getVM(key).getOrganizationName().equals(user.getOrganization()))
+                            return "{\"added\":" + cloudService.changeVM(key, vm) + "}";
+                        else
+                            return responseStatus(res, 403, "Unauthorized access");
+                    }
+                }
             }
 
             return responseStatus(res, 403, "Unauthorized access");
@@ -569,10 +590,23 @@ public class CloudServiceApp {
                 if (user.getRole() == User.Role.SUPER_ADMIN) {
                     VM v = cloudService.removeVM(vm.getName());
                     if(v != null) {
-                        cloudService.removeOrganizationResource(v.getOrganizationName(), v.getName()); // TODO: implementirati brisanje iz org i deaktiviranje diskova
+                        cloudService.removeOrganizationResource(v.getOrganizationName(), v.getName());
                         cloudService.setNotUsingDiscs(v.getAttachedDiscs());
                     }
                     return "{\"deleted\":" + (v != null) + "}";
+                }
+                else if(user.getRole() == User.Role.ADMIN) {
+                    if(cloudService.getVM(vm.getName()).getOrganizationName().equals(user.getOrganization())) {
+                        VM v = cloudService.removeVM(vm.getName());
+                        if (v != null) {
+                            cloudService.removeOrganizationResource(v.getOrganizationName(), v.getName());
+                            cloudService.setNotUsingDiscs(v.getAttachedDiscs());
+                        }
+                        return "{\"deleted\":" + (v != null) + "}";
+                    }
+                    else {
+                        return responseStatus(res, 403, "Unauthorized access");
+                    }
                 }
             }
 
@@ -607,7 +641,7 @@ public class CloudServiceApp {
             } catch (Exception ex) {}
 
             if (user != null) {
-                if (user.getRole() == User.Role.SUPER_ADMIN) {
+                if (user.getRole() != User.Role.USER) {
                     return g.toJson(cloudService.getVMCategory(name));
                 }
             }
@@ -712,6 +746,23 @@ public class CloudServiceApp {
                     return g.toJson(cloudService.getAllDiscs());
                 } else {
                     return g.toJson(cloudService.getOrganizationDiscs(user.getOrganization()));
+                }
+            }
+
+            return responseStatus(res, 403, "Unauthorized access");
+        });
+
+        post("/rest/getDiscsOrg", (req, res) -> {
+            res.type("application/json");
+            User user = isUserLoggedIn(req);
+            Organization org = null;
+            try {
+                org = g.fromJson(req.body(), Organization.class);
+            } catch (Exception ex) {}
+
+            if (user != null) {
+                if (user.getRole() == User.Role.SUPER_ADMIN) {
+                    return g.toJson(cloudService.getOrganizationDiscs(org.getName()));
                 }
             }
 
@@ -832,6 +883,7 @@ public class CloudServiceApp {
                 } else if (user.getRole() == User.Role.ADMIN) {
                     if (key != null) {
                         Organization org = cloudService.getOrganization(user.getOrganization());
+                        disc.setOrganizationName(org.getName());
                         if(org.containsResource(disc.getName())) {
                             return "{\"added\":" + cloudService.changeDisc(key, disc) + "}";
                         }
