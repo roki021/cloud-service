@@ -4,22 +4,20 @@ import beans.*;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.google.gson.reflect.TypeToken;
 import controler.CloudServiceControler;
-import jdk.jfr.Category;
 import spark.Request;
 import spark.Response;
 import spark.Session;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Type;
-import java.util.HashMap;
-import java.util.Map;
 
 import static spark.Spark.*;
 
 public class CloudServiceApp {
+
+    private static final String MSG_400 = "Bad Request";
+    private static final String MSG_403 = "Forbidden";
 
     private static CloudServiceControler cloudService = new CloudServiceControler();
     private static Gson g = new Gson();
@@ -33,7 +31,7 @@ public class CloudServiceApp {
 
         post("/rest/logIn", (req, res) -> {
             res.type("application/json");
-            User user = null;
+            User user;
             boolean logIn = false;
             try {
                 user = g.fromJson(req.body(), User.class);
@@ -48,6 +46,7 @@ public class CloudServiceApp {
                     }
                 }
             } catch (Exception ex) {
+                return responseStatus(res, 400, MSG_400);
             }
 
             return "{\"loggedIn\": " + logIn + "}";
@@ -81,16 +80,16 @@ public class CloudServiceApp {
                return g.toJson(user);
            }
 
-           return responseStatus(res, 403, "Unauthorized access");
+           return responseStatus(res, 403, MSG_403);
         });
 
         post("/rest/editProfile", (req, res) -> {
             res.type("application/json");
-            User changed = null;
+            User changed;
             try {
                 changed = g.fromJson(req.body(), User.class);
             } catch (Exception ex) {
-                return responseStatus(res, 400, "Bad arguments");
+                return responseStatus(res, 400, MSG_400);
             }
             User user = isUserLoggedIn(req);
 
@@ -98,12 +97,12 @@ public class CloudServiceApp {
                 return "{\"changed\": " + cloudService.changeProfile(user, changed) + "}";
             }
 
-            return responseStatus(res, 403, "Unauthorized access");
+            return responseStatus(res, 403, MSG_403);
         });
 
         post("/rest/changePassword", (req, res) -> {
             res.type("application/json");
-            PasswordChange newPass = null;
+            PasswordChange newPass;
             try {
                 newPass = g.fromJson(req.body(), PasswordChange.class);
             } catch (Exception ex) {
@@ -143,11 +142,13 @@ public class CloudServiceApp {
             Session ss = req.session();
             User user = ss.attribute("user");
             User u;
-            String email = "";
+            String email;
             try {
                 u = g.fromJson(req.body(), User.class);
                 email = u.getEmail();
-            } catch (Exception ex) {}
+            } catch (Exception ex) {
+                return responseStatus(res, 400, MSG_400);
+            }
 
             if (user == null) {
                 res.status(403);
@@ -329,15 +330,16 @@ public class CloudServiceApp {
                 }
             }
 
-            return responseStatus(res, 403, "Unauthorized access");
+            return responseStatus(res, 403, MSG_403);
         });
 
         post("/rest/addOrg", (req, res) -> {
             res.type("application/json");
-            Organization org = null;
+            Organization org;
             try {
                 org = g.fromJson(req.body(), Organization.class);
             } catch (Exception ex) {
+                return responseStatus(res, 400, MSG_400);
             }
             User user = isUserLoggedIn(req);
 
@@ -347,39 +349,37 @@ public class CloudServiceApp {
                 }
             }
 
-            return responseStatus(res, 403, "Unauthorized access");
+            return responseStatus(res, 403, MSG_403);
         });
 
         post("/rest/getOrg", (req, res) -> {
             res.type("application/json");
             Session ss = req.session(true);
-            Organization org = null;
+            Organization org;
             try {
                 org = g.fromJson(req.body(), Organization.class);
                 ss.attribute("orgToChange", org.getName());
             } catch (Exception ex) {
+                return responseStatus(res, 400, MSG_400);
             }
             User user = isUserLoggedIn(req);
 
             if (user != null) {
                 if (user.getRole() == User.Role.SUPER_ADMIN) {
-                    if (org != null) {
-                        return g.toJson(cloudService.getOrganization(org.getName()));
-                    } else {
-                        return responseStatus(res, 400, "Bad request");
-                    }
+                    return g.toJson(cloudService.getOrganization(org.getName()));
                 }
             }
 
-            return responseStatus(res, 403, "Unauthorized access");
+            return responseStatus(res, 403, MSG_403);
         });
 
         post("/rest/editOrg", (req, res) -> {
             res.type("application/json");
-            Organization org = null;
+            Organization org;
             try {
                 org = g.fromJson(req.body(), Organization.class);
             } catch (Exception ex) {
+                return responseStatus(res, 400, MSG_400);
             }
             User user = isUserLoggedIn(req);
 
@@ -455,11 +455,11 @@ public class CloudServiceApp {
         post("/rest/getOrgVMs", (req, res) -> {
             res.type("application/json");
             User user = isUserLoggedIn(req);
-            Organization org = null;
+            Organization org;
             try {
                 org = g.fromJson(req.body(), Organization.class);
             } catch (Exception ex) {
-                return responseStatus(res, 400, "Bad request");
+                return responseStatus(res, 400, MSG_400);
             }
 
             if(user != null) {
@@ -468,7 +468,7 @@ public class CloudServiceApp {
                 }
             }
 
-            return responseStatus(res, 403, "Unauthorized access");
+            return responseStatus(res, 403, MSG_403);
         });
 
         post("/rest/getVM", (req, res) -> {
@@ -749,16 +749,18 @@ public class CloudServiceApp {
                 }
             }
 
-            return responseStatus(res, 403, "Unauthorized access");
+            return responseStatus(res, 403, MSG_403);
         });
 
         post("/rest/getDiscsOrg", (req, res) -> {
             res.type("application/json");
             User user = isUserLoggedIn(req);
-            Organization org = null;
+            Organization org;
             try {
                 org = g.fromJson(req.body(), Organization.class);
-            } catch (Exception ex) {}
+            } catch (Exception ex) {
+                return responseStatus(res, 400, MSG_400);
+            }
 
             if (user != null) {
                 if (user.getRole() == User.Role.SUPER_ADMIN) {
@@ -766,7 +768,7 @@ public class CloudServiceApp {
                 }
             }
 
-            return responseStatus(res, 403, "Unauthorized access");
+            return responseStatus(res, 403, MSG_403);
         });
 
         post("/rest/getDiscsVm", (req, res) -> {
@@ -776,6 +778,7 @@ public class CloudServiceApp {
             try {
                 vm = g.fromJson(req.body(), VM.class);
             } catch (Exception ex) {
+                return responseStatus(res, 400, MSG_400);
             }
 
             if (user != null) {
@@ -786,18 +789,19 @@ public class CloudServiceApp {
                 }
             }
 
-            return responseStatus(res, 403, "Unauthorized access");
+            return responseStatus(res, 403, MSG_403);
         });
 
         post("/rest/addDisc", (req, res) -> {
             res.type("application/json");
             User user = isUserLoggedIn(req);
-            Disc disc = null;
+            Disc disc;
 
             try {
                 disc = g.fromJson(req.body(), Disc.class);
+                disc.isValidData();
             } catch (Exception ex) {
-                return responseStatus(res, 400, "Bad request");
+                return responseStatus(res, 400, MSG_400);
             }
 
             if (user != null) {
@@ -810,16 +814,18 @@ public class CloudServiceApp {
                 }
             }
 
-            return responseStatus(res, 403, "Unauthorized access");
+            return responseStatus(res, 403, MSG_403);
         });
 
         post("/rest/removeDisc", (req, res) -> {
             res.type("application/json");
             User user = isUserLoggedIn(req);
-            Disc disc = null;
+            Disc disc;
             try {
                 disc = g.fromJson(req.body(), Disc.class);
-            } catch (Exception ex) {}
+            } catch (Exception ex) {
+                return responseStatus(res, 400, MSG_400);
+            }
 
             if (user != null) {
                 if (user.getRole() == User.Role.SUPER_ADMIN) {
@@ -828,49 +834,44 @@ public class CloudServiceApp {
                 }
             }
 
-            return responseStatus(res, 403, "Unauthorized access");
+            return responseStatus(res, 403, MSG_403);
         });
 
         post("/rest/getDisc", (req, res) -> {
             res.type("application/json");
             Session ss = req.session(true);
-            Disc disc = null;
+            Disc disc;
             try {
                 disc = g.fromJson(req.body(), Disc.class);
                 ss.attribute("discToChange", disc.getName());
-            } catch (Exception ex) {}
+            } catch (Exception ex) {
+                return responseStatus(res, 400, MSG_400);
+            }
             User user = isUserLoggedIn(req);
 
             if (user != null) {
                 if (user.getRole() == User.Role.SUPER_ADMIN) {
-                    if (disc != null) {
-                        return g.toJson(cloudService.getDisc(disc.getName()));
-                    } else {
-                        return responseStatus(res, 400, "Bad request");
-                    }
+                    return g.toJson(cloudService.getDisc(disc.getName()));
                 }
                 else {
-                    if (disc != null) {
-                        Organization org = cloudService.getOrganization(user.getOrganization());
-                        if(org.containsResource(disc.getName())) {
-                            return g.toJson(cloudService.getDisc(disc.getName()));
-                        }
-                    } else {
-                        return responseStatus(res, 400, "Bad request");
+                    Organization org = cloudService.getOrganization(user.getOrganization());
+                    if(org.containsResource(disc.getName())) {
+                        return g.toJson(cloudService.getDisc(disc.getName()));
                     }
                 }
             }
 
-            return responseStatus(res, 403, "Unauthorized access");
+            return responseStatus(res, 403, MSG_403);
         });
 
         post("/rest/editDisc", (req, res) -> {
             res.type("application/json");
-            Disc disc = null;
+            Disc disc;
             try {
                 disc = g.fromJson(req.body(), Disc.class);
+                disc.isValidData();
             } catch (Exception ex) {
-                return responseStatus(res, 400, "Bad request");
+                return responseStatus(res, 400, MSG_400);
             }
             User user = isUserLoggedIn(req);
 
@@ -891,7 +892,7 @@ public class CloudServiceApp {
                 }
             }
 
-            return responseStatus(res, 403, "Unauthorized access");
+            return responseStatus(res, 403, MSG_403);
         });
     }
 

@@ -234,6 +234,7 @@ function setUpEditFormDisc(discName) {
                     .val(disc.organizationName)
                     .trigger("change");
                     window.sessionStorage.setItem("default", disc.virtualMachine);
+                    $("#virtualMachineField").val(disc.virtualMachine);
                     $("#discTypeField").val(disc.discType);
                     $("#capacityField").val(disc.capacity);
                 }

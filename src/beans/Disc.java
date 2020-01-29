@@ -50,4 +50,9 @@ public class Disc extends Resource{
     public void setOrganizationName(String organizationName) {
         this.organizationName = organizationName;
     }
+
+    public void isValidData() {
+        if(capacity < 0)
+            throw new IllegalArgumentException("Capacity can't be lower than zero");
+    }
 }
