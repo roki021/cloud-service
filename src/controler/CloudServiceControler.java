@@ -310,6 +310,16 @@ public class CloudServiceControler {
         return retVal;
     }
 
+    public void changeOrgIdInResources(Organization org) {
+        for(String resource : org.getResources()) {
+            if(virtualMachines.containsKey(resource)) {
+                virtualMachines.get(resource).setOrganizationName(org.getName());
+            } else if(discs.containsKey(resource)) {
+                discs.get(resource).setOrganizationName(org.getName());
+            }
+        }
+    }
+
     public boolean removeOrganizationResource(String org, String res) {
         boolean retVal = false;
         if(res != null) {
@@ -334,10 +344,12 @@ public class CloudServiceControler {
         if(newOrg != null) {
             if(!organizations.containsKey(newOrg.getName()) || oldKey.equals(newOrg.getName())) {
                 changeLogo(organizations.get(oldKey).getLogoUrl(), newOrg);
+                newOrg.takeDataFromLists(organizations.get(oldKey));
+                changeOrgIdInResources(newOrg);
                 removeOrganization(oldKey);
                 organizations.put(newOrg.getName(), newOrg);
                 changeUsersOrganization(oldKey, newOrg.getName());
-                saveFile(organizations.values(), DATA_PATH + ORG_FILE);
+                saveAfterDiscChange();
                 retVal = true;
             }
         }

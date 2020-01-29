@@ -86,4 +86,9 @@ public class Organization {
     public boolean removeResource(String resourceName) {
         return resources.remove(resourceName);
     }
+
+    public void takeDataFromLists(Organization org) {
+        resources = org.resources;
+        users = org.users;
+    }
 }

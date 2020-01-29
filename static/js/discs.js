@@ -149,7 +149,120 @@ function setUpDiscView(canvas, discs) {
             onclick="setUpAddFormDisc('Add disc', 'addDisc', 'rest/addDisc')">Add Disc</button>`;
         canvas.append(addDiscButton);
     }
+    canvas.append(placeSearchArea());
+    setUpSearchAreaDisc();
 }
+
+function placeSearchArea() {
+    var searchArea  = `
+    <div class="ml-sm-1">
+        <p>
+            <button class="btn btn-primary col-sm-auto" type="button" data-toggle="collapse" data-target="#collapseArea" aria-expanded="false" aria-controls="collapseExample">
+                Data filter
+            </button>
+        </p>
+        <div class="collapse" id="collapseArea">
+            <div class="card card-body col-sm-6" id="searchArgs">
+            </div>
+        </div>
+    </div>`;
+
+    return searchArea;
+}
+
+function createMinMaxCompare(label, minName, maxName) {
+    return `<div class="form-group row">
+                <label class="col-sm-2 col-form-label">${label}</label>
+                <div class="col-sm-4 pt-sm-1">
+                    <input type="number" class="form-control" id="${minName}">
+                </div>
+                <label class="col-sm-2 text-center col-form-label">to</label>
+                <div class="col-sm-4 pt-sm-1">
+                    <input type="number" class="form-control" id="${maxName}">
+                </div>
+            </div>`;
+}
+
+function setUpSearchAreaDisc() {
+    var args = $("#searchArgs");
+    args.append(createInput("text", "name", "Name", "Name", "form-control"));
+    args.append(createMinMaxCompare("Capacity (GB)", "capMin", "capMax"));
+
+    $("#nameField").on("keyup", function() {
+        var rows = $(".table").find("> tbody > tr");
+        rows.filter(function() {
+            var row = $(this).find("td");
+            $(this).toggle(checkFieldsFilterDisc(row));
+        })
+    });
+
+    $("#capMin").on("keyup", function() {
+        var value = $(this).val().toLowerCase();
+        var rows = $(".table").find("> tbody > tr");
+        rows.filter(function() {
+            var row = $(this).find("td");
+            $(this).toggle(checkFieldsFilterDisc(row));
+        })
+    });
+
+    $("#capMax").on("keyup", function() {
+        var value = $(this).val().toLowerCase();
+        var rows = $(".table").find("> tbody > tr");
+        rows.filter(function() {
+            var row = $(this).find("td");
+            $(this).toggle(checkFieldsFilterDisc(row));
+        })
+    });
+}
+
+function checkFieldsFilterDisc(row) {
+    var nameField = $("#nameField");
+    var capMin = $("#capMin");
+    var capMax = $("#capMax");
+    var capVal = capacityMap[$(row[1]).text()];
+    var capMinVal = parseInt(capMin.val());
+    var capMaxVal = parseInt(capMax.val());
+    var nameInd = $(row[0]).text().toLowerCase().indexOf(nameField.val()) > -1
+    var minInd = capVal >= capMinVal || capMin.val() == "";
+    var maxInd = capVal <= capMaxVal || capMax.val() == "";
+    return nameInd && minInd && maxInd;
+}
+
+
+
+(function($) {
+	$.fn.filterTable = function(filter, columnname) {
+		var index = null;
+		this.find("thead > tr:first > th").each(function(i) {
+			if ($.trim($(this).text()) == columnname) {
+				index = i;
+				return false;
+			}
+		});
+		if (index == null)
+			throw ("filter columnname: " + columnname + " not found");
+
+		this.find("tbody:first > tr").each(function() {
+		    var row = $(this);
+		    if (filter == "") {
+		        row.show();
+		    }
+		    else {
+		        var cellText = row.find("td:eq(" + index + ")").find('option:selected').text();
+		        if (cellText == "") {
+		            cellText = $(row.find(("td:eq(" + index + ")"))).text();
+		        }
+		        if (cellText.indexOf(filter) == -1) {
+		            row.hide();
+		        }
+		        else {
+		            row.show();
+		        }
+		    }
+		});
+		return this;
+	};
+})(jQuery);
 
 function setUpAddFormDisc(buttonText, func, route) {
     var canvas = $("#canvas");
