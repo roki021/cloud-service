@@ -204,7 +204,7 @@ function createTableRowOrg(org) {
             </td>
             <td>${org.name}</td>
             <td>${desc}</td>
-            <td><a class="pr-sm-1" href="#" onclick="setUpEditForm('${org.name}')"><i class="fa fa-pencil pr-2"></i></a><a href="#" onclick=""><i class="fa fa-trash-o"></i></a></td>
+            <td><a class="pr-sm-1" href="#" onclick="setUpEditForm('${org.name}')"><i class="fa fa-pencil pr-2"></i></a></td>
         </tr>
     `;
 
