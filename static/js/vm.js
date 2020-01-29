@@ -510,11 +510,19 @@ function editVmClick(name) {
                     </select>
                 </div>
             </div>
+            <div class="form-group row">
+                <label for="exampleFormControlInput1" class="col-sm-2 col-form-label">State</label>
+                <div class="col-sm-10 pt-sm-1">
+                    <input type="checkbox" id="toggleState" onchange="toggleState()" data-onstyle="success" data-offstyle="danger">
+                </div>
+            </div>
             <button type="button" onclick="editVM()" class="btn btn-primary float-right col-sm-auto">Save Changes</button>
+
         </form>
     `;
     formHolder.append(form);
     $("#canvas").append(formHolder);
+    $('#toggleState').bootstrapToggle()
     addVmFillCats();
     editVmFillDiscs(name);
     if(currentUser == "SUPER_ADMIN")
@@ -594,6 +602,7 @@ function setFields(vmName) {
 
 function editVM() {
     var data = getFormData($("#editVmForm"));
+    console.log(data);
     if(data.attachedDiscs != null)
     if(!$.isArray(data.attachedDiscs))
     {
