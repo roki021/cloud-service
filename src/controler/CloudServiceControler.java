@@ -59,6 +59,7 @@ public class CloudServiceControler {
         loadUsers(DATA_PATH + USERS_FILE);
         loadVMCats(DATA_PATH + CATS_FILE);
         loadDiscs(DATA_PATH + DISC_FILE);
+        loadVMs(DATA_PATH + VM_FILE);
     }
 
     private void saveFile(Collection<?> collection, String filePath) {
@@ -74,12 +75,7 @@ public class CloudServiceControler {
         users = new HashMap<String, User>();
         organizations = new HashMap<String, Organization>();
         virtualMachines = new HashMap<String, VM>();
-        virtualMachines.put("vm1", new VM("vm1", "cat1"));
-        virtualMachines.put("vm2", new VM("vm2", "cat1"));
-        virtualMachines.put("vm3", new VM("vm3", "cat2"));
         vmCategories = new HashMap<String, VMCategory>();
-        vmCategories.put("cat1", new VMCategory("cat1", 4, 4, 0));
-        vmCategories.put("cat2", new VMCategory("cat2", 6, 8, 2));
         discs = new HashMap<String, Disc>();
         superAdmins = new HashMap<String, User>();
 
@@ -300,6 +296,18 @@ public class CloudServiceControler {
         return retVal;
     }
 
+    public boolean addOrganizationResource(String org, String res) {
+        boolean retVal = false;
+        if(res != null) {
+            if(!organizations.get(org).containsResource(res)) {
+                organizations.get(org).addResource(res);
+                saveFile(organizations.values(), DATA_PATH + ORG_FILE);
+                retVal = true;
+            }
+        }
+        return retVal;
+    }
+
     public Organization removeOrganization(String key) {
         return organizations.remove(key);
     }
@@ -356,6 +364,19 @@ public class CloudServiceControler {
     }
 
     /* ********************* VM ********************* */
+
+    private void loadVMs(String filePath) {
+        if(new File(filePath).exists()) {
+            try(FileReader fr = new FileReader(filePath)) {
+                for(VM vm : g.fromJson(fr, VM[].class)) {
+                    virtualMachines.put(vm.getName(), vm);
+                }
+            } catch (IOException ioe) {
+                ioe.printStackTrace();
+                System.out.println("Data not loaded");
+            }
+        }
+    }
 
     public VM getVM(String key) {
         VM vm = null;
@@ -519,6 +540,16 @@ public class CloudServiceControler {
         }
 
         return retVal;
+    }
+
+    public void setUsingDiscs(List<String> usingDiscs, String vmName) {
+        if(discs != null) {
+            for(Disc disc : discs.values()) {
+                if(usingDiscs.contains(disc.getName()))
+                    disc.setVirtualMachine(vmName);
+            }
+            saveFile(discs.values(), DATA_PATH + DISC_FILE);
+        }
     }
 
     /* ********************* VM_CATEGORY ********************* */

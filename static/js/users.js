@@ -326,10 +326,13 @@ function addUser() {
     }
 }
 
-function removeUser(email) {
+function removeUser(userEmail) {
+    var s = JSON.stringify({email: userEmail});
     $.ajax({
-        url: "rest/removeUser?email=" + email,
-        type: "GET",
+        url: "rest/removeUser",
+        type: "POST",
+        data: s,
+        contentType: "application/json",
         dataType: "json",
         complete: function(data) {
             response = data.responseJSON;

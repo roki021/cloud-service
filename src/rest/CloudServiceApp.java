@@ -4,6 +4,7 @@ import beans.*;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
 import controler.CloudServiceControler;
 import spark.Request;
 import spark.Response;
@@ -11,6 +12,9 @@ import spark.Session;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Type;
+import java.util.HashMap;
+import java.util.Map;
 
 import static spark.Spark.*;
 
@@ -266,11 +270,16 @@ public class CloudServiceApp {
             return "{\"success\": " + success + "}";
         });
 
-        get("/rest/removeUser", (req, res) -> {
+        post("/rest/removeUser", (req, res) -> {
             res.type("application/json");
             Session ss = req.session();
             User user = ss.attribute("user");
-            String email = req.queryParams("email");
+            User u = null;
+            String email = "";
+            try {
+                 u = g.fromJson(req.body(), User.class);
+                email = u.getEmail();
+            } catch (Exception ex) {}
             boolean success = false;
 
             if (user == null) {
@@ -281,7 +290,7 @@ public class CloudServiceApp {
                 if (user.getEmail().equals(email)) {
                     res.status(400);
                 } else {
-                    User u = cloudService.removeUser(email);
+                    u = cloudService.removeUser(email);
                     if(u != null)
                         success = true;
                 }
@@ -290,7 +299,7 @@ public class CloudServiceApp {
                     res.status(400);
                 } else {
                     if (cloudService.getUser(email).getOrganization().equals(user.getOrganization())) {
-                        User u = cloudService.removeUser(email);
+                        u = cloudService.removeUser(email);
                         if(u != null)
                             success = true;
                     }
@@ -447,8 +456,14 @@ public class CloudServiceApp {
         post("/rest/addVM", (req, res) -> {
             res.type("application/json");
             VM vm = null;
+            Map map = null;
+            String body = req.body();
+            System.out.println(body);
+            System.out.println(body);
             try {
-                vm = g.fromJson(req.body(), VM.class);
+                vm = g.fromJson(body, VM.class);
+                map = g.fromJson(req.body(), Map.class);
+                System.out.println(map.get("organization"));
                 if(vm.getName().equals(""))
                     return "{\"added\": false}";
             } catch (Exception ex) {
@@ -458,7 +473,23 @@ public class CloudServiceApp {
 
             if (user != null) {
                 if (user.getRole() == User.Role.SUPER_ADMIN) {
-                    return "{\"added\":" + cloudService.addVM(vm) + "}";
+
+                    boolean success = cloudService.addVM(vm);
+                    if(success) {
+                        cloudService.addOrganizationResource((String)map.get("organization"), vm.getName());
+                        cloudService.setUsingDiscs(vm.getAttachedDiscs(), vm.getName());
+                    }
+
+                    return "{\"added\":" + success + "}";
+                }
+                else if (user.getRole() == User.Role.ADMIN) {
+                    boolean success = cloudService.addVM(vm);
+                    if(success) {
+                        cloudService.addOrganizationResource(user.getOrganization(), vm.getName());
+                        cloudService.setUsingDiscs(vm.getAttachedDiscs(), vm.getName());
+                    }
+
+                    return "{\"added\":" + success + "}";
                 }
             }
 
@@ -473,7 +504,7 @@ public class CloudServiceApp {
             User user = ss.attribute("user");
 
             if (user != null) {
-                if (user.getRole() == User.Role.SUPER_ADMIN) {
+                if (user.getRole() == User.Role.SUPER_ADMIN || user.getRole() == User.Role.ADMIN) {
                     return g.toJson(cloudService.getAllVMCategories());
                 }
             }
