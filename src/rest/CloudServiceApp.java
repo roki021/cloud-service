@@ -621,9 +621,7 @@ public class CloudServiceApp {
             User user = ss.attribute("user");
 
             if (user != null) {
-                if (user.getRole() == User.Role.SUPER_ADMIN || user.getRole() == User.Role.ADMIN) {
-                    return g.toJson(cloudService.getAllVMCategories());
-                }
+                return g.toJson(cloudService.getAllVMCategories());
             }
 
             return responseStatus(res, 403, "Unauthorized access");

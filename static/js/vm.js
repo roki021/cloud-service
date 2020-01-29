@@ -44,8 +44,13 @@ function setUpVMView(canvas, vms) {
     table.append(tbody);
     extra = "";
     for(let vm of vms) {
+        var actions = "";
         if(currentUser == "SUPER_ADMIN")
             extra = "<td>"+vm.organization+"</td>";
+        if(currentUser == "SUPER_ADMIN" || currentUser == "ADMIN")
+            actions = `<td><a href="#" onclick="editVmClick('${vm.name}')"><i class="fa fa-pencil pr-2"></i></a><a href="#" onclick="removeVm('${vm.name}')"><i class="fa fa-trash-o"></i></a></td>`;
+        else
+            actions = `<td><a href="#" onclick="editVmClick('${vm.name}')"><i class="fa fa-eye pr-2"></i></a</td>`;
         var row =
         `
             <tr>
@@ -54,7 +59,7 @@ function setUpVMView(canvas, vms) {
                 <td>${vm.ram}</td>
                 <td>${vm.gpu}</td>
                 ${extra}
-                <td><a href="#" onclick="editVmClick('${vm.name}')"><i class="fa fa-pencil pr-2"></i></a><a href="#" onclick="removeVm('${vm.name}')"><i class="fa fa-trash-o"></i></a></td>
+                ${actions}
             </tr>
         `;
         tbody.append(row);
@@ -417,7 +422,10 @@ function editVmClick(name) {
     editVmFillDiscs(name);
     if(currentUser == "SUPER_ADMIN")
         addVmFillOrgs();
-
+    if(currentUser == "USER") {
+        $("#editVmForm :input").prop("disabled", true);
+        $("#editVmForm :button").hide();
+    }
 }
 
 function editVmFillDiscs(vmName) {
