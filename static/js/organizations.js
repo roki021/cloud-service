@@ -52,6 +52,7 @@ function addOrganization(route) {
                             wrongCred.insertBefore("input[type=button]");
                         } else {
                             getOrganizations();
+                            location.reload();
                         }
                     }
                 }
@@ -75,31 +76,34 @@ function editOwnOrganization(route) {
         logMsg.text("This field is mandatory");
         nameInput.parent().append(logMsg);
     } else {
-        $.ajax({
-            url: route,
-            type: "POST",
-            data: jsonData,
-            contentType: "application/json",
-            dataType: "json",
-            complete: function(data) {
-                if(data.status === 403) {
-                    response = data.responseJSON;
-                    statusMessageStyle(403, response.message);
-                } else {
-                    response = data.responseJSON;
-
-                    if(!response.added) {
-                        var wrongCred = $("<div class=\"alert alert-danger text-center\" role=\"alert\"></div>");
-                        wrongCred.text("Something went wrong with data editing");
-                        wrongCred.insertBefore("input[type=button]");
+        getImgBytes(function(jsonData) {
+            $.ajax({
+                url: route,
+                type: "POST",
+                data: jsonData,
+                contentType: "application/json",
+                dataType: "json",
+                complete: function(data) {
+                    if(data.status === 403) {
+                        response = data.responseJSON;
+                        statusMessageStyle(403, response.message);
                     } else {
-                        var rightCred = $("<div class=\"alert alert-success text-center\" role=\"alert\"></div>");
-                        rightCred.text("Successful editing");
-                        rightCred.insertBefore("input[type=button]");
+                        response = data.responseJSON;
+
+                        if(!response.added) {
+                            var wrongCred = $("<div class=\"alert alert-danger text-center\" role=\"alert\"></div>");
+                            wrongCred.text("Something went wrong with data editing");
+                            wrongCred.insertBefore("input[type=button]");
+                        } else {
+                            var rightCred = $("<div class=\"alert alert-success text-center\" role=\"alert\"></div>");
+                            rightCred.text("Successful editing");
+                            rightCred.insertBefore("input[type=button]");
+                            setTimeout(function() { location.reload();}, 3000);
+                        }
                     }
                 }
-            }
-        });
+            });
+        }, formData);
     }
 }
 
@@ -118,6 +122,7 @@ function getUserOrganization() {
                     setUpAddForm("Save changes", "editOwnOrganization", "rest/editOrg");
                     $("#nameField").val(org.name);
                     $("#descriptionField").val(org.description);
+                    $(`<img class="img-fluid img pb-sm-2 rounded" style="width: 200px;" src="${org.logoUrl}">`).insertBefore("input[type=file]");
                 }
             }
         }
@@ -139,9 +144,9 @@ function setUpEditForm(orgName) {
                 statusMessageStyle(403, response.message);
             } else {
                 org = data.responseJSON;
-
                 $("#nameField").val(org.name);
                 $("#descriptionField").val(org.description);
+                $(`<img class="img-fluid img pb-sm-2 rounded" style="width: 200px;" src="${org.logoUrl}">`).insertBefore("input[type=file]");
             }
         }
     });
@@ -209,48 +214,6 @@ function createTableRowOrg(org) {
     `;
 
     return row;
-}
-
-function createTextArea(type, name, labelText, placeholder, inputClass) {
-    var textArea =
-    `
-        <div class="form-group row">
-            <label for="${name}Field" class="col-sm-2 col-form-label">${labelText}</label>
-            <div class="col-sm-10 pt-sm-1">
-                <textarea rows="10" class="${inputClass}" id="${name}Field" name="${name}" placeholder="${placeholder}"></textarea>
-            </div>
-        </div>
-    `
-
-    return textArea;
-}
-
-function createInput(type, name, labelText, placeholder, inputClass) {
-    var input =
-    `
-        <div class="form-group row">
-            <label for="${name}Field" class="col-sm-2 col-form-label">${labelText}</label>
-            <div class="col-sm-10 pt-sm-1">
-                <input type="${type}" class="${inputClass}" id="${name}Field" name="${name}" placeholder="${placeholder}">
-            </div>
-        </div>
-    `
-
-    return input;
-}
-
-function createSelect(name, labelText, inputClass) {
-    var select =
-    `
-        <div class="form-group row">
-            <label for="${name}Field" class="col-sm-2 col-form-label">${labelText}</label>
-            <div class="col-sm-10 pt-sm-1">
-                <select class="${inputClass}" id="${name}Field" name="${name}"></select>
-            </div>
-        </div>
-    `
-
-    return select;
 }
 
 function getImgBytes(callback, data) {

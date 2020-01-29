@@ -265,6 +265,9 @@ function setUpPageByUser(user) {
     var sidebarItems = $("#sidebar-items");
 
     sidebarItems.append(createSidebarItem("Virtual machines", "vms", getVMs));
+    $("#homeBtn").click(function() {
+        $("#vms").trigger('click');
+    });
     sidebarItems.append(createSidebarItem("Discs", "discs", getDiscs));
     switch(user.role) {
         case "SUPER_ADMIN":
@@ -306,6 +309,48 @@ function createSidebarItem(text, id, clickFunc) {
         });
 
     return listItem;
+}
+
+function createTextArea(type, name, labelText, placeholder, inputClass) {
+    var textArea =
+    `
+        <div class="form-group row">
+            <label for="${name}Field" class="col-sm-2 col-form-label">${labelText}</label>
+            <div class="col-sm-10 pt-sm-1">
+                <textarea rows="10" class="${inputClass}" id="${name}Field" name="${name}" placeholder="${placeholder}"></textarea>
+            </div>
+        </div>
+    `
+
+    return textArea;
+}
+
+function createInput(type, name, labelText, placeholder, inputClass) {
+    var input =
+    `
+        <div class="form-group row">
+            <label for="${name}Field" class="col-sm-2 col-form-label">${labelText}</label>
+            <div class="col-sm-10 pt-sm-1">
+                <input type="${type}" class="${inputClass}" id="${name}Field" name="${name}" placeholder="${placeholder}">
+            </div>
+        </div>
+    `
+
+    return input;
+}
+
+function createSelect(name, labelText, inputClass) {
+    var select =
+    `
+        <div class="form-group row">
+            <label for="${name}Field" class="col-sm-2 col-form-label">${labelText}</label>
+            <div class="col-sm-10 pt-sm-1">
+                <select class="${inputClass}" id="${name}Field" name="${name}"></select>
+            </div>
+        </div>
+    `
+
+    return select;
 }
 
 function statusMessageStyle(statusCode, message) {
