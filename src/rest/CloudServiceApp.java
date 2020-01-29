@@ -452,6 +452,25 @@ public class CloudServiceApp {
             return responseStatus(res, 403, "Unauthorized access");
         });
 
+        post("/rest/getOrgVMs", (req, res) -> {
+            res.type("application/json");
+            User user = isUserLoggedIn(req);
+            Organization org = null;
+            try {
+                org = g.fromJson(req.body(), Organization.class);
+            } catch (Exception ex) {
+                return responseStatus(res, 400, "Bad request");
+            }
+
+            if(user != null) {
+                if(user.getRole() == User.Role.SUPER_ADMIN) {
+                    return g.toJson(cloudService.getVMs(org.getName()));
+                }
+            }
+
+            return responseStatus(res, 403, "Unauthorized access");
+        });
+
         post("/rest/getVM", (req, res) -> {
             res.type("application/json");
             Session ss = req.session(true);
@@ -551,7 +570,7 @@ public class CloudServiceApp {
                     VM v = cloudService.removeVM(vm.getName());
                     if(v != null) {
                         cloudService.removeOrganizationResource(v.getOrganizationName(), v.getName()); // TODO: implementirati brisanje iz org i deaktiviranje diskova
-                        cloudService.setNotUsingDiscs(vm.getAttachedDiscs(), vm.getName());
+                        cloudService.setNotUsingDiscs(v.getAttachedDiscs());
                     }
                     return "{\"deleted\":" + (v != null) + "}";
                 }
@@ -727,10 +746,15 @@ public class CloudServiceApp {
             try {
                 disc = g.fromJson(req.body(), Disc.class);
             } catch (Exception ex) {
+                return responseStatus(res, 400, "Bad request");
             }
 
             if (user != null) {
-                if (user.getRole() != User.Role.USER) {
+                if (user.getRole() == User.Role.SUPER_ADMIN) {
+                    return "{\"added\":" + cloudService.addDisc(disc) + "}";
+                }
+                else if (user.getRole() == User.Role.ADMIN) {
+                    disc.setOrganizationName(user.getOrganization());
                     return "{\"added\":" + cloudService.addDisc(disc) + "}";
                 }
             }

@@ -5,15 +5,17 @@ public class Disc extends Resource{
 
     private DiscType discType;
     private int capacity; // capacity is shown in GB
+    private String organizationName;
     private String virtualMachine;
 
     public Disc() {
     }
 
-    public Disc(String name, DiscType discType, int capacity, String virtualMachine) {
+    public Disc(String name, DiscType discType, int capacity, String organizationName, String virtualMachine) {
         super(name);
         this.discType = discType;
         this.capacity = capacity;
+        this.organizationName = organizationName;
         this.virtualMachine = virtualMachine;
     }
 
@@ -39,5 +41,13 @@ public class Disc extends Resource{
 
     public void setVirtualMachine(String virtualMachine) {
         this.virtualMachine = virtualMachine;
+    }
+
+    public String getOrganizationName() {
+        return organizationName;
+    }
+
+    public void setOrganizationName(String organizationName) {
+        this.organizationName = organizationName;
     }
 }

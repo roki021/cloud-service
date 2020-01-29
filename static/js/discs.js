@@ -9,6 +9,13 @@ var capacityMap = {
     "5TB": 5120
 }
 
+function getKey(val) {
+    for(let cap in capacityMap) {
+        if(capacityMap[cap] == val)
+            return cap;
+    }
+}
+
 function getDiscs() {
    $.ajax({
        url: "rest/getDiscs",
@@ -159,13 +166,51 @@ function setUpAddFormDisc(buttonText, func, route) {
 
     formHolder.append(form);
 
-    if(window.localStorage.getItem("role") == "USER") {
+    var role = window.localStorage.getItem("role");
+
+    if(role == "USER") {
         $("#discAdd :input").prop("disabled", true);
     } else {
+        if(role == "SUPER_ADMIN") {
+            var orgName = $(createSelect("organizationName", "Organization", "form-control"));
+            orgName.insertBefore($("#virtualMachineField").closest('.row'));
+            orgName.change(loadVMs);
+        }
         form.append(`
             <input type="button" class="btn btn-primary float-right col-sm-auto" onclick="${func}('${route}')" value="${buttonText}"/>
         `);
     }
+}
+
+function loadVMs(event) {
+    var select = $(event.target);
+    jsonData = JSON.stringify({name: select.val()});
+    $.ajax({
+        url: "rest/getOrgVMs",
+        type: "POST",
+        contentType: "application/json",
+        data: jsonData,
+        dataType: "json",
+        complete: function(data) {
+            if(data.status === 403) {
+                response = data.responseJSON;
+                statusMessageStyle(403, response.message);
+            } else {
+                var vms = $("#virtualMachineField");
+                vms.find('option').remove();
+                vms.append(createOption("", ""));
+                for(let vm of data.responseJSON) {
+                    vms.append(createOption(vm.name, vm.name));
+                }
+
+                var defVal = window.sessionStorage.getItem("default");
+                if(defVal != null) {
+                    $("#virtualMachineField").val(defVal);
+                    window.sessionStorage.removeItem("default");
+                }
+            }
+        }
+    });
 }
 
 function setUpEditFormDisc(discName) {
@@ -185,7 +230,10 @@ function setUpEditFormDisc(discName) {
                 } else {
                     var disc = data.responseJSON;
                     $("#nameField").val(disc.name);
-                    $("#virtualMachineField").val(disc.virtualMachine);
+                    $("#organizationNameField")
+                    .val(disc.organizationName)
+                    .trigger("change");
+                    window.sessionStorage.setItem("default", disc.virtualMachine);
                     $("#discTypeField").val(disc.discType);
                     $("#capacityField").val(disc.capacity);
                 }
@@ -195,39 +243,77 @@ function setUpEditFormDisc(discName) {
 }
 
 function fillDropDowns(callback=null) {
-    $.ajax({
-        url: "rest/getVMs",
-        type: "GET",
-        dataType: "json",
-        complete: function(data) {
-            if(data.status === 403) {
-                response = data.responseJSON;
-                statusMessageStyle(403, response.message);
-            } else {
-                var vms = $("#virtualMachineField");
-                vms.find('option').remove();
-                vms.append(createOption("", ""));
-                for(let vm of data.responseJSON) {
-                    vms.append(createOption(vm.name, vm.name));
+    var role = window.localStorage.getItem("role");
+    if(role == "SUPER_ADMIN") {
+        $.ajax({
+            url: "rest/getOrgs",
+            type: "GET",
+            dataType: "json",
+            complete: function(data) {
+                if(data.status === 403) {
+                    response = data.responseJSON;
+                    statusMessageStyle(403, response.message);
+                } else {
+                    var orgs = $("#organizationNameField");
+                    orgs.find('option').remove();
+                    orgs.append(createOption("", ""));
+                    for(let org of data.responseJSON) {
+                        orgs.append(createOption(org.name, org.name));
+                    }
+
+                    var typeSelect = $("#discTypeField");
+                    typeSelect.find('option').remove();
+                    typeSelect.append(createOption("", ""));
+                    typeSelect.append(createOption("SSD", "SSD"));
+                    typeSelect.append(createOption("HDD", "HDD"));
+
+                    var capacitySelect = $("#capacityField");
+                    capacitySelect.find('option').remove();
+                    capacitySelect.append(createOption("", ""));
+                    for(let key in capacityMap) {
+                        capacitySelect.append(createOption(capacityMap[key], key));
+                    }
+
+                    if(callback != null)
+                        callback();
                 }
-
-                var typeSelect = $("#discTypeField");
-                typeSelect.find('option').remove();
-                typeSelect.append(createOption("SSD", "SSD"));
-                typeSelect.append(createOption("HDD", "HDD"));
-
-                var capacitySelect = $("#capacityField");
-                capacitySelect.find('option').remove();
-                capacitySelect.append(createOption("", ""));
-                for(let key in capacityMap) {
-                    capacitySelect.append(createOption(capacityMap[key], key));
-                }
-
-                if(callback != null)
-                    callback();
             }
-        }
-    });
+        });
+    } else {
+        $.ajax({
+            url: "rest/getVMs",
+            type: "GET",
+            dataType: "json",
+            complete: function(data) {
+                if(data.status === 403) {
+                    response = data.responseJSON;
+                    statusMessageStyle(403, response.message);
+                } else {
+                    var vms = $("#virtualMachineField");
+                    vms.find('option').remove();
+                    vms.append(createOption("", ""));
+                    for(let vm of data.responseJSON) {
+                        vms.append(createOption(vm.name, vm.name));
+                    }
+
+                    var typeSelect = $("#discTypeField");
+                    typeSelect.find('option').remove();
+                    typeSelect.append(createOption("SSD", "SSD"));
+                    typeSelect.append(createOption("HDD", "HDD"));
+
+                    var capacitySelect = $("#capacityField");
+                    capacitySelect.find('option').remove();
+                    capacitySelect.append(createOption("", ""));
+                    for(let key in capacityMap) {
+                        capacitySelect.append(createOption(capacityMap[key], key));
+                    }
+
+                    if(callback != null)
+                        callback();
+                }
+            }
+        });
+    }
 }
 
 function createTableRowDisc(disc, userRole) {
@@ -247,7 +333,7 @@ function createTableRowDisc(disc, userRole) {
     `
         <tr>
             <td>${disc.name}</td>
-            <td>${disc.capacity}</td>
+            <td>${getKey(disc.capacity)}</td>
             <td>${vm}</td>
             ${userRole != "USER" ? actions_admins : actions_user}
         </tr>
