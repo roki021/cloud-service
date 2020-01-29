@@ -153,40 +153,11 @@ function setUpDiscView(canvas, discs) {
     setUpSearchAreaDisc();
 }
 
-function placeSearchArea() {
-    var searchArea  = `
-    <div class="ml-sm-1">
-        <p>
-            <button class="btn btn-primary col-sm-auto" type="button" data-toggle="collapse" data-target="#collapseArea" aria-expanded="false" aria-controls="collapseExample">
-                Data filter
-            </button>
-        </p>
-        <div class="collapse" id="collapseArea">
-            <div class="card card-body col-sm-6" id="searchArgs">
-            </div>
-        </div>
-    </div>`;
-
-    return searchArea;
-}
-
-function createMinMaxCompare(label, minName, maxName) {
-    return `<div class="form-group row">
-                <label class="col-sm-2 col-form-label">${label}</label>
-                <div class="col-sm-4 pt-sm-1">
-                    <input type="number" class="form-control" id="${minName}">
-                </div>
-                <label class="col-sm-2 text-center col-form-label">to</label>
-                <div class="col-sm-4 pt-sm-1">
-                    <input type="number" class="form-control" id="${maxName}">
-                </div>
-            </div>`;
-}
-
 function setUpSearchAreaDisc() {
     var args = $("#searchArgs");
-    args.append(createInput("text", "name", "Name", "Name", "form-control"));
-    args.append(createMinMaxCompare("Capacity (GB)", "capMin", "capMax"));
+    args.prepend(createMinMaxCompare("Capacity (GB)", "capMin", "capMax"));
+    args.prepend(createInput("text", "name", "Name", "Name", "form-control"));
+
 
     $("#nameField").on("keyup", function() {
         var rows = $(".table").find("> tbody > tr");

@@ -95,7 +95,6 @@ function changePassword() {
             dataType: "json",
             complete: function(data) {
                 response = data.responseJSON;
-                console.log(response);
                 if(response.changed == 1) {
                     var wrongCred = $("<div class=\"alert alert-danger text-center\" role=\"alert\"></div>");
                     wrongCred.text("You entered wrong password");
@@ -359,4 +358,41 @@ function statusMessageStyle(statusCode, message) {
     div.append(`<h5>${message}</h5>`)
 
     return div;
+}
+
+function placeSearchArea() {
+    var searchArea  = `
+    <div class="ml-sm-1">
+        <p>
+            <button class="btn btn-primary col-sm-auto" type="button" data-toggle="collapse" data-target="#collapseArea" aria-expanded="false" aria-controls="collapseExample">
+                Data filter
+            </button>
+        </p>
+        <div class="collapse" id="collapseArea">
+            <div class="card card-body col-sm-6" id="searchArgs">
+            <button class="btn btn-secondary" type="button" onclick="resetSearchFields()">Reset</button>
+            </div>
+
+        </div>
+    </div>`;
+
+    return searchArea;
+}
+
+function resetSearchFields() {
+    $("#searchArgs").find("input").prop("value", "");
+    $(".table").find("> tbody > tr").show();
+}
+
+function createMinMaxCompare(label, minName, maxName) {
+    return `<div class="form-group row">
+                <label class="col-sm-2 col-form-label">${label}</label>
+                <div class="col-sm-4 pt-sm-1">
+                    <input type="number" class="form-control" id="${minName}">
+                </div>
+                <label class="col-sm-2 text-center col-form-label">to</label>
+                <div class="col-sm-4 pt-sm-1">
+                    <input type="number" class="form-control" id="${maxName}">
+                </div>
+            </div>`;
 }

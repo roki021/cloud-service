@@ -73,6 +73,103 @@ function setUpVMView(canvas, vms) {
              onclick="addVmClick()">Add Virtual Machine</button>`;
         canvas.append(addVmButton);
     }
+    canvas.append(placeSearchArea());
+    setUpSearchAreaVm();
+}
+
+function setUpSearchAreaVm() {
+    var args = $("#searchArgs");
+
+    args.prepend(createMinMaxCompare("GPU", "gpuCoresMin", "gpuCoresMax"));
+    args.prepend(createMinMaxCompare("RAM", "ramMin", "ramMax"));
+    args.prepend(createMinMaxCompare("Cores", "coresMin", "coresMax"));
+    args.prepend(createInput("text", "name", "Name", "Name", "form-control"));
+
+    $("#nameField").on("keyup", function() {
+        var rows = $(".table").find("> tbody > tr");
+        rows.filter(function() {
+            var row = $(this).find("td");
+            $(this).toggle(checkFieldsFilterVm(row));
+        })
+    });
+
+    $("#coresMin").on("keyup", function() {
+        var value = $(this).val().toLowerCase();
+        var rows = $(".table").find("> tbody > tr");
+        rows.filter(function() {
+            var row = $(this).find("td");
+            $(this).toggle(checkFieldsFilterVm(row));
+        })
+    });
+
+    $("#coresMax").on("keyup", function() {
+        var value = $(this).val().toLowerCase();
+        var rows = $(".table").find("> tbody > tr");
+        rows.filter(function() {
+            var row = $(this).find("td");
+            $(this).toggle(checkFieldsFilterVm(row));
+        })
+    });
+
+    $("#ramMin").on("keyup", function() {
+        var value = $(this).val().toLowerCase();
+        var rows = $(".table").find("> tbody > tr");
+        rows.filter(function() {
+            var row = $(this).find("td");
+            $(this).toggle(checkFieldsFilterVm(row));
+        })
+    });
+
+    $("#ramMax").on("keyup", function() {
+        var value = $(this).val().toLowerCase();
+        var rows = $(".table").find("> tbody > tr");
+        rows.filter(function() {
+            var row = $(this).find("td");
+            $(this).toggle(checkFieldsFilterVm(row));
+        })
+    });
+
+    $("#gpuCoresMin").on("keyup", function() {
+        var value = $(this).val().toLowerCase();
+        var rows = $(".table").find("> tbody > tr");
+        rows.filter(function() {
+            var row = $(this).find("td");
+            $(this).toggle(checkFieldsFilterVm(row));
+        })
+    });
+
+    $("#gpuCoresMax").on("keyup", function() {
+        var value = $(this).val().toLowerCase();
+        var rows = $(".table").find("> tbody > tr");
+        rows.filter(function() {
+            var row = $(this).find("td");
+            $(this).toggle(checkFieldsFilterVm(row));
+        })
+    });
+}
+
+function checkFieldsFilterVm(row) {
+    var nameField = $("#nameField");
+    var coresVal = parseInt($(row[1]).text());
+    var coresMinVal = parseInt($("#coresMin").val());
+    var coresMaxVal = parseInt($("#coresMax").val());
+    var ramVal = parseInt($(row[2]).text().replace(" GB", ""));
+    var ramMinVal = parseInt($("#ramMin").val());
+    var ramMaxVal = parseInt($("#ramMax").val());
+    var gpuCoresVal = parseInt($(row[3]).text());
+    var gpuCoresMinVal = parseInt($("#gpuCoresMin").val());
+    var gpuCoresMaxVal = parseInt($("#gpuCoresMax").val());
+
+
+    var nameInd = $(row[0]).text().toLowerCase().indexOf(nameField.val()) > -1
+    var minInd = coresVal >= coresMinVal || $("#coresMin").val() == "";
+    var maxInd = coresVal <= coresMaxVal || $("#coresMax").val() == "";
+    var minInd2 = ramVal >= ramMinVal || $("#ramMin").val() == "";
+    var maxInd2 = ramVal <= ramMaxVal || $("#ramMax").val() == "";
+    var minInd3 = gpuCoresVal >= gpuCoresMinVal || $("#gpuCoresMin").val() == "";
+    var maxInd3 = gpuCoresVal <= gpuCoresMaxVal || $("#gpuCoresMax").val() == "";
+
+    return nameInd && minInd && maxInd && minInd2 && maxInd2 && minInd3 && maxInd3;
 }
 
 function addVmClick() {
@@ -445,7 +542,6 @@ function editVmFillDiscs(vmName) {
             }
             else {
                 for(let disc of response) {
-                    console.log(disc);
                     var conf1 = "";
                     var role = window.localStorage.getItem("role");
                     if(role != "SUPER_ADMIN" || disc.organizationName == $("#organizationSelect").val()) {
