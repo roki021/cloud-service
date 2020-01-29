@@ -6,6 +6,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import controler.CloudServiceControler;
+import jdk.jfr.Category;
 import spark.Request;
 import spark.Response;
 import spark.Session;
@@ -137,17 +138,22 @@ public class CloudServiceApp {
             }
         });
 
-        get("/rest/getUser", (req, res) -> {
+        post("/rest/getUser", (req, res) -> {
             res.type("application/json");
             Session ss = req.session();
             User user = ss.attribute("user");
-            String email = req.queryParams("email");
+            User u;
+            String email = "";
+            try {
+                u = g.fromJson(req.body(), User.class);
+                email = u.getEmail();
+            } catch (Exception ex) {}
 
             if (user == null) {
                 res.status(403);
                 return "{\"access\": Unauthorized}";
             } else if (user.getRole() == User.Role.SUPER_ADMIN) {
-                User u = cloudService.getUser(email);
+                u = cloudService.getUser(email);
                 if (u != null) {
                     return g.toJson(u);
                 } else {
@@ -155,7 +161,7 @@ public class CloudServiceApp {
                     return "{\"user\": \"not found\"}";
                 }
             } else if (user.getRole() == User.Role.ADMIN) {
-                User u = cloudService.getUser(email);
+                u = cloudService.getUser(email);
                 if (u != null) {
                     if (u.getOrganization().equals(user.getOrganization()))
                         return g.toJson(u);
@@ -416,19 +422,12 @@ public class CloudServiceApp {
                 if (user.getRole() == User.Role.SUPER_ADMIN) {
                     JsonArray array = new JsonArray();
                     for (VM vm : cloudService.getAllVMs()) {
-                        String orgName = "";
-                        for (Organization o : cloudService.getAllOrganizations()) {
-                            if (o.containsResource(vm.getName())) {
-                                orgName = o.getName();
-                                break;
-                            }
-                        }
                         JsonObject v = new JsonObject();
                         v.addProperty("name", vm.getName());
                         v.addProperty("cores", cloudService.getVMCategory(vm.getCategoryName()).getCores());
                         v.addProperty("ram", cloudService.getVMCategory(vm.getCategoryName()).getRam());
                         v.addProperty("gpu", cloudService.getVMCategory(vm.getCategoryName()).getGpuCores());
-                        v.addProperty("organization", orgName);
+                        v.addProperty("organization", vm.getOrganizationName());
                         array.add(v);
                     }
 
@@ -436,7 +435,7 @@ public class CloudServiceApp {
                 } else {
                     JsonArray array = new JsonArray();
                     for (VM vm : cloudService.getAllVMs()) {
-                        if(cloudService.getOrganization(user.getOrganization()).containsResource(vm.getName())) {
+                        if(cloudService.getOrganization(user.getOrganization()).equals(vm.getName())) {
                             JsonObject v = new JsonObject();
                             v.addProperty("name", vm.getName());
                             v.addProperty("cores", cloudService.getVMCategory(vm.getCategoryName()).getCores());
@@ -456,27 +455,23 @@ public class CloudServiceApp {
         post("/rest/addVM", (req, res) -> {
             res.type("application/json");
             VM vm = null;
-            Map map = null;
-            String body = req.body();
-            System.out.println(body);
-            System.out.println(body);
             try {
-                vm = g.fromJson(body, VM.class);
-                map = g.fromJson(req.body(), Map.class);
-                System.out.println(map.get("organization"));
-                if(vm.getName().equals(""))
-                    return "{\"added\": false}";
+                vm = g.fromJson(req.body(), VM.class);
+
             } catch (Exception ex) {
             }
+            if(vm.getName().equals(""))
+                return "{\"added\": false}";
             Session ss = req.session(true);
             User user = ss.attribute("user");
+            System.out.println(vm);
 
             if (user != null) {
                 if (user.getRole() == User.Role.SUPER_ADMIN) {
 
                     boolean success = cloudService.addVM(vm);
                     if(success) {
-                        cloudService.addOrganizationResource((String)map.get("organization"), vm.getName());
+                        cloudService.addOrganizationResource(vm.getOrganizationName(), vm.getName());
                         cloudService.setUsingDiscs(vm.getAttachedDiscs(), vm.getName());
                     }
 
@@ -490,6 +485,28 @@ public class CloudServiceApp {
                     }
 
                     return "{\"added\":" + success + "}";
+                }
+            }
+
+            return responseStatus(res, 403, "Unauthorized access");
+        });
+
+        post("/rest/removeVM", (req, res) -> {
+            res.type("application/json");
+            User user = isUserLoggedIn(req);
+            VM vm = null;
+            try {
+                vm = g.fromJson(req.body(), VM.class);
+            } catch (Exception ex) {}
+
+            if (user != null) {
+                if (user.getRole() == User.Role.SUPER_ADMIN) {
+                    VM v = cloudService.removeVM(vm.getName());
+                    if(v != null) {
+                        cloudService.removeOrganizationResource(v.getOrganizationName(), v.getName());
+                        cloudService.setNotUsingDiscs(vm.getAttachedDiscs(), vm.getName());
+                    }
+                    return "{\"deleted\":" + (v != null) + "}";
                 }
             }
 
@@ -512,11 +529,16 @@ public class CloudServiceApp {
             return responseStatus(res, 403, "Unauthorized access");
         });
 
-        get("/rest/getVMCat2", (req, res) -> {
+        post("/rest/getVMCat2", (req, res) -> {
             res.type("application/json");
             Session ss = req.session(true);
             User user = ss.attribute("user");
-            String name = req.queryParams("name");
+            VMCategory cat = null;
+            String name = "";
+            try {
+                cat = g.fromJson(req.body(), VMCategory.class);
+                name = cat.getName();
+            } catch (Exception ex) {}
 
             if (user != null) {
                 if (user.getRole() == User.Role.SUPER_ADMIN) {
@@ -527,11 +549,16 @@ public class CloudServiceApp {
             return responseStatus(res, 403, "Unauthorized access");
         });
 
-        get("/rest/getVMCat", (req, res) -> {
+        post("/rest/getVMCat", (req, res) -> {
             res.type("application/json");
             Session ss = req.session(true);
             User user = ss.attribute("user");
-            String name = req.queryParams("name");
+            VMCategory cat = null;
+            String name = "";
+            try {
+                cat = g.fromJson(req.body(), VMCategory.class);
+                name = cat.getName();
+            } catch (Exception ex) {}
             ss.attribute("catToChange", name);
 
             if (user != null) {
@@ -543,11 +570,16 @@ public class CloudServiceApp {
             return responseStatus(res, 403, "Unauthorized access");
         });
 
-        get("/rest/removeCategory", (req, res) -> {
+        post("/rest/removeCategory", (req, res) -> {
             res.type("application/json");
             Session ss = req.session();
             User user = ss.attribute("user");
-            String name = req.queryParams("name");
+            VMCategory cat = null;
+            String name = "";
+            try {
+                cat = g.fromJson(req.body(), VMCategory.class);
+                name = cat.getName();
+            } catch (Exception ex) {}
 
             if (user != null) {
                 if (user.getRole() == User.Role.SUPER_ADMIN) {
@@ -594,7 +626,6 @@ public class CloudServiceApp {
             if (user != null) {
                 if (user.getRole() == User.Role.SUPER_ADMIN) {
                     String key = ss.attribute("catToChange");
-
                     if (key != null) {
                         return "{\"success\":" + cloudService.changeVMCategory(key, cat) + "}";
                     }

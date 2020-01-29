@@ -150,6 +150,7 @@ function addUserClick() {
                 $("#canvas").append(formHolder);
                 if(response.currentUser == "SUPER_ADMIN")
                     fillOrgList();
+
             }
     });
 }
@@ -226,10 +227,13 @@ function editUserClick(email) {
     });
 }
 
-function editUserFill(email) {
+function editUserFill(userEmail) {
+    var s = JSON.stringify({email: userEmail});
     $.ajax({
-        url: "rest/getUser?email=" + email,
-        type: "GET",
+        url: "rest/getUser",
+        type: "POST",
+        data: s,
+        contentType: "application/json",
         dataType: "json",
         complete: function(data) {
             response = data.responseJSON;

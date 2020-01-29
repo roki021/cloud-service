@@ -210,10 +210,13 @@ function editVMCat() {
     }
 }
 
-function editVmCatFill(name) {
+function editVmCatFill(vmCatName) {
+    var s = JSON.stringify({name: vmCatName});
     $.ajax({
-            url: "rest/getVMCat?name=" + name,
-            type: "GET",
+            url: "rest/getVMCat",
+            type: "POST",
+            data: s,
+            contentType: "application/json",
             dataType: "json",
             complete: function(data) {
                 response = data.responseJSON;
@@ -282,10 +285,13 @@ function editVmCatClick(name) {
 
 }
 
-function removeCategory(name) {
+function removeCategory(vmCatName) {
+    var s = JSON.stringify({name: vmCatName});
     $.ajax({
-        url: "rest/removeCategory?name=" + name,
-        type: "GET",
+        url: "rest/removeCategory",
+        type: "POST",
+        data: s,
+        contentType: "application/json",
         dataType: "json",
         complete: function(data) {
             response = data.responseJSON;

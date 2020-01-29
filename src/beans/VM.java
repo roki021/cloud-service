@@ -5,6 +5,7 @@ import java.util.List;
 
 public  class VM extends Resource{
     private String categoryName;
+    private String organizationName;
     private List<String> attachedDiscs;
     private List<Activity> activities;
 
@@ -13,16 +14,18 @@ public  class VM extends Resource{
         this.activities = new ArrayList<Activity>();
     }
 
-    public VM(String name, String categoryName, List<String> attachedDiscs, List<Activity> activities) {
+    public VM(String name, String categoryName, String organizationName, List<String> attachedDiscs, List<Activity> activities) {
         super(name);
         this.categoryName = categoryName;
+        this.organizationName = organizationName;
         this.attachedDiscs = attachedDiscs;
         this.activities = activities;
     }
 
-    public VM(String name, String categoryName) {
+    public VM(String name, String categoryName, String organizationName) {
         super(name);
         this.categoryName = categoryName;
+        this.organizationName = organizationName;
         this.attachedDiscs = new ArrayList<String>();
         this.activities = new ArrayList<Activity>();
     }
@@ -55,10 +58,19 @@ public  class VM extends Resource{
         this.activities.add(activity);
     }
 
+    public String getOrganizationName() {
+        return organizationName;
+    }
+
+    public void setOrganizationName(String organizationName) {
+        this.organizationName = organizationName;
+    }
+
     @Override
     public String toString() {
         return "VM{" +
                 "categoryName='" + categoryName + '\'' +
+                ", organizationName='" + organizationName + '\'' +
                 ", attachedDiscs=" + attachedDiscs +
                 ", activities=" + activities +
                 '}';

@@ -45,7 +45,7 @@ function setUpVMView(canvas, vms) {
     extra = "";
     for(let vm of vms) {
         if(currentUser == "SUPER_ADMIN")
-            extra = "<td>" + vm.organization + "</td>"
+            extra = vm.organization;
         var row =
         `
             <tr>
@@ -53,7 +53,7 @@ function setUpVMView(canvas, vms) {
                 <td>${vm.cores}</td>
                 <td>${vm.ram}</td>
                 <td>${vm.gpu}</td>
-                ${extra}
+                <td>${extra}</td>
                 <td><a href="#" onclick="setUpEditForm('${vm.name}')"><i class="fa fa-pencil pr-2"></i></a><a href="#" onclick="removeVm('${vm.name}')"><i class="fa fa-trash-o"></i></a></td>
             </tr>
         `;
@@ -80,7 +80,7 @@ function addVmClick() {
             <div class="form-group row">
                 <label for="exampleFormControlSelect1" class="col-sm-2 col-form-label">Organization</label>
                 <div class="col-sm-10 pt-sm-1">
-                    <select onchange="loadFields()" class="form-control" id="organizationSelect" name="organization">
+                    <select onchange="loadFields()" class="form-control" id="organizationSelect" name="organizationName">
                     </select>
                 </div>
             </div>
@@ -284,6 +284,7 @@ function addVM() {
         input.parent().append(logMsg);
     }
     else {
+        console.log(s);
         $.ajax({
             url: "rest/addVM",
             type: "POST",
@@ -304,14 +305,27 @@ function addVM() {
     }
 }
 
-function removeVm(name) {
+function removeVm(vmName) {
+    var s = JSON.stringify({name: vmName});
     $.ajax({
-        url: "rest/removeVm?name=" + name,
-        type: "GET",
+        url: "rest/removeVM",
+        type: "POST",
+        data: s,
+        contentType: "application/json",
         dataType: "json",
         complete: function(data) {
             response = data.responseJSON;
-            console.log(response);
+            if(data.status == 403) {
+                $("#canvas").empty();
+                $("#canvas").append('<h1>403 Forbidden</h1>');
+            } else if(data.status == 400) {
+                $("#canvas").empty();
+                $("#canvas").append('<h1>400 Bad Request</h1>');
+            } else {
+                if(response.deleted == true) {
+                    getVMs();
+                }
+            }
         }
     });
 }

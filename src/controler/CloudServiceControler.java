@@ -18,12 +18,12 @@ public class CloudServiceControler {
     private static final String VM_FILE = "/vm.json";
 
 
-    private HashMap<String, User> users;
-    private HashMap<String, Organization> organizations;
-    private HashMap<String, VM> virtualMachines;
-    private HashMap<String, VMCategory> vmCategories;
-    private HashMap<String, Disc> discs;
-    private HashMap<String, User> superAdmins;
+    private TreeMap<String, User> users;
+    private TreeMap<String, Organization> organizations;
+    private TreeMap<String, VM> virtualMachines;
+    private TreeMap<String, VMCategory> vmCategories;
+    private TreeMap<String, Disc> discs;
+    private TreeMap<String, User> superAdmins;
     private Gson g;
 
     private static String generateRandomString() {
@@ -72,12 +72,12 @@ public class CloudServiceControler {
     }
 
     public CloudServiceControler() {
-        users = new HashMap<String, User>();
-        organizations = new HashMap<String, Organization>();
-        virtualMachines = new HashMap<String, VM>();
-        vmCategories = new HashMap<String, VMCategory>();
-        discs = new HashMap<String, Disc>();
-        superAdmins = new HashMap<String, User>();
+        users = new TreeMap<String, User>();
+        organizations = new TreeMap<String, Organization>();
+        virtualMachines = new TreeMap<String, VM>();
+        vmCategories = new TreeMap<String, VMCategory>();
+        discs = new TreeMap<String, Disc>();
+        superAdmins = new TreeMap<String, User>();
 
         g = new GsonBuilder().setPrettyPrinting().create();
 
@@ -299,10 +299,26 @@ public class CloudServiceControler {
     public boolean addOrganizationResource(String org, String res) {
         boolean retVal = false;
         if(res != null) {
-            if(!organizations.get(org).containsResource(res)) {
-                organizations.get(org).addResource(res);
-                saveFile(organizations.values(), DATA_PATH + ORG_FILE);
-                retVal = true;
+            if(org != null) {
+                if (!organizations.get(org).containsResource(res)) {
+                    organizations.get(org).addResource(res);
+                    saveFile(organizations.values(), DATA_PATH + ORG_FILE);
+                    retVal = true;
+                }
+            }
+        }
+        return retVal;
+    }
+
+    public boolean removeOrganizationResource(String org, String res) {
+        boolean retVal = false;
+        if(res != null) {
+            if(org != null) {
+                if (!organizations.get(org).containsResource(res)) {
+                    organizations.get(org).removeResource(res);
+                    saveFile(organizations.values(), DATA_PATH + ORG_FILE);
+                    retVal = true;
+                }
             }
         }
         return retVal;
@@ -552,6 +568,16 @@ public class CloudServiceControler {
         }
     }
 
+    public void setNotUsingDiscs(List<String> usingDiscs, String vmName) {
+        if(discs != null) {
+            for(Disc disc : discs.values()) {
+                if(usingDiscs.contains(disc.getName()))
+                    disc.setVirtualMachine("");
+            }
+            saveFile(discs.values(), DATA_PATH + DISC_FILE);
+        }
+    }
+
     /* ********************* VM_CATEGORY ********************* */
 
     private void loadVMCats(String filePath) {
@@ -609,8 +635,13 @@ public class CloudServiceControler {
         if(newVMCategory != null) {
             if(!vmCategories.containsKey(newVMCategory.getName())
                     || oldKey.equals(newVMCategory.getName())) {
+                for(VM vm : virtualMachines.values()) {
+                    if(vm.getCategoryName().equals(oldKey))
+                        vm.setCategoryName(newVMCategory.getName());
+                }
                 removeVMCategory(oldKey);
                 vmCategories.put(newVMCategory.getName(), newVMCategory);
+                saveFile(virtualMachines.values(), DATA_PATH + VM_FILE);
                 saveFile(vmCategories.values(), DATA_PATH + CATS_FILE);
                 retVal = true;
             }
