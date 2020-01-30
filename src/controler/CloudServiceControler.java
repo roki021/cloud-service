@@ -17,6 +17,12 @@ public class CloudServiceControler {
     private static final String DISC_FILE = "/discs.json";
     private static final String VM_FILE = "/vm.json";
 
+    private static final double CORE_PRICE = 25.0 / (30.0 * 24.0);
+    private static final double RAM_PRICE = 15.0 / (30.0 * 24.0);
+    private static final double GPU_CORE_PRICE = 1.0 / (30.0 * 24.0);
+    private static final double HDD_PRICE_GB = 0.1 / (30.0 * 24.0);
+    private static final double SSD_PRICE_GB = 0.3 / (30.0 * 24.0);
+
 
     private HashMap<String, User> users;
     private HashMap<String, Organization> organizations;
@@ -406,6 +412,56 @@ public class CloudServiceControler {
         }
     }
 
+    private double calculateVMBill(VM vm, PeriodBill period) {
+        double price = 0.0;
+        Date intervalStart;
+        Date intervalEnd;
+        for(Activity act : vm.getActivities()) {
+            if(act.getStarted().after(period.getFromDate())) {
+                intervalStart = act.getStarted();
+            }
+            else {
+                intervalStart = period.getFromDate();
+            }
+
+            if(!act.isStopped()) {
+                intervalEnd = period.getToDate();
+            }
+            else {
+                if(act.getStopped().before(period.getToDate())) {
+                    intervalEnd = act.getStopped();
+                }
+                else {
+                    intervalEnd = period.getFromDate();
+                }
+            }
+
+            long diff = intervalEnd.getTime() - intervalStart.getTime();
+            long diffHours = diff / (60 * 60 * 1000);
+
+            int coreNum = vmCategories.get(vm.getCategoryName()).getCores();
+            int ramNum = vmCategories.get(vm.getCategoryName()).getRam();
+            int gpuCoreNum = vmCategories.get(vm.getCategoryName()).getGpuCores();
+
+            price += diffHours * (CORE_PRICE * coreNum +
+                    RAM_PRICE * ramNum + GPU_CORE_PRICE * gpuCoreNum);
+        }
+
+        return price;
+    }
+
+    private double calculateDiscBill(Disc disc, PeriodBill period) {
+        long diff = period.getToDate().getTime() - period.getFromDate().getTime();
+        long diffHours = diff / (60 * 60 * 1000);
+
+        if(disc.getDiscType() == Disc.DiscType.SSD) {
+            return diffHours * SSD_PRICE_GB * disc.getCapacity();
+        }
+        else {
+            return diffHours * HDD_PRICE_GB * disc.getCapacity();
+        }
+    }
+
     public VM getVM(String key) {
         VM vm = null;
 
@@ -494,6 +550,30 @@ public class CloudServiceControler {
         saveFile(virtualMachines.values(), DATA_PATH + VM_FILE);
         return success;
     }
+
+    public Collection<PeriodBill> getBill(User u, PeriodBill period) {
+        ArrayList<PeriodBill> billing = new ArrayList<PeriodBill>();
+
+        for(String resource : organizations.get(u.getOrganization()).getResources()) {
+            PeriodBill bill = new PeriodBill(period);
+            if(virtualMachines.containsKey(resource)) {
+                VM vm = virtualMachines.get(resource);
+                bill.setPrice(calculateVMBill(vm, period));
+                bill.setResourceName(resource);
+            }
+
+            if(discs.containsKey(resource)) {
+                Disc disc = discs.get(resource);
+                bill.setPrice(calculateDiscBill(disc, period));
+                bill.setResourceName(resource);
+            }
+            billing.add(bill);
+        }
+
+        return billing;
+    }
+
+
 
     /* ********************* DISC ********************* */
 

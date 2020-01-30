@@ -17,6 +17,73 @@ function getVMs() {
     });
 }
 
+function placeBillFilter() {
+    var canvas = $("#canvas");
+    canvas.empty();
+
+    var formHolder = $(`<div class="mt-3 mr-1 ml-1 row justify-content-center"/>`);
+    canvas.append(formHolder);
+    var form = $(`<form id="billForm" class="col-sm-8"/>`);
+    form.append(createInput("datetime-local", "fromDate", "From", "", "form-control"));
+    form.append(createInput("datetime-local", "toDate", "To", "", "form-control"));
+    form.append(`
+        <input type="button" class="btn btn-primary float-right col-sm-auto" onclick="getBill()" value="Show bill"/>
+    `);
+
+    formHolder.append(form);
+}
+
+function getBill() {
+    var formData = getFormData($("#billForm"));
+    var jsonData = JSON.stringify(formData);
+    console.log(formData);
+
+    $.ajax({
+        url: "rest/getBill",
+        type: "POST",
+        contentType: "application/json",
+        data: jsonData,
+        dataType: "json",
+        complete: function(data) {
+            if(data.status == 400 || data.status == 403) {
+                var response = data.responseJSON;
+                statusMessageStyle(data.status, response.message);
+            } else {
+                var canvas = $("#canvas");
+                canvas.empty();
+
+                var billing = data.responseJSON;
+
+                var div = $(`<div class="mt-sm-3 mr-sm-1 ml-sm-1 row justify-content-center"/>`);
+                var table = $(`<table class="table table-hover table-dark"/>`);
+                table.append(
+                `
+                    <thead>
+                        <tr>
+                            <th colspan=2 class="text-center">${formatDate(formData.fromDate)} - ${formatDate(formData.toDate)}</th>
+                        </tr>
+                        <tr>
+                            <th>Resource name</th>
+                            <th>Price</th>
+                        </tr>
+                    </thead>
+                `);
+                var tbody = $("<tbody/>");
+                var totalPrice = 0.0;
+                table.append(tbody);
+                for(let bill of billing) {
+                    totalPrice += bill.price;
+                    tbody.append(`<tr><td>${bill.resourceName}</td><td>${bill.price.toFixed(2)}€</td></tr>`);
+                }
+
+                tbody.append(`<tr><td>Total</td><td>${totalPrice.toFixed(2)}€</td></tr>`);
+                div.append(table);
+                canvas.append(div);
+            }
+        }
+    });
+}
+
 function setUpVMView(canvas, vms) {
 
     var div = $(`<div class="mt-sm-3 mr-sm-1 ml-sm-1 row justify-content-center"/>`);

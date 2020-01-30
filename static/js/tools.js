@@ -277,6 +277,7 @@ function setUpPageByUser(user) {
         case "ADMIN":
             sidebarItems.append(createSidebarItem("Organization", "orgs", getUserOrganization));
             sidebarItems.append(createSidebarItem("Users", "users", getUsers));
+            sidebarItems.append(createSidebarItem("Monthly bill", "bill", placeBillFilter))
         break;
     }
 
@@ -395,4 +396,17 @@ function createMinMaxCompare(label, minName, maxName) {
                     <input type="number" class="form-control" id="${maxName}">
                 </div>
             </div>`;
+}
+
+function formatDate(stringDate) {
+    var date = new Date(stringDate);
+    return date.getFullYear() + "-" +
+        placeZero((date.getMonth() + 1)) + "-" +
+        placeZero(date.getDate()) + " " +
+        placeZero(date.getHours()) + ":" +
+        placeZero(date.getMinutes());
+}
+
+function placeZero(number) {
+    return number < 10 ? "0" + number.toString() : number.toString();
 }

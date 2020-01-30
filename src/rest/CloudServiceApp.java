@@ -2,6 +2,7 @@ package rest;
 
 import beans.*;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import controler.CloudServiceControler;
@@ -21,7 +22,7 @@ public class CloudServiceApp {
     private static final String MSG_403 = "Forbidden";
 
     private static CloudServiceControler cloudService = new CloudServiceControler();
-    private static Gson g = new Gson();
+    private static Gson g = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm").create();
 
     public static void main(String[] args) throws IOException {
         port(8080);
@@ -636,6 +637,26 @@ public class CloudServiceApp {
             return responseStatus(res, 403, "Unauthorized access");
         });
 
+        post("/rest/getBill", (req, res) -> {
+            res.type("application/json");
+            User user = isUserLoggedIn(req);
+            PeriodBill period;
+
+            try {
+                period = g.fromJson(req.body(), PeriodBill.class);
+            } catch (Exception ex) {
+                return responseStatus(res, 400, MSG_400);
+            }
+
+            if(user != null) {
+                if(user.getRole() == User.Role.ADMIN) {
+                    return g.toJson(cloudService.getBill(user, period));
+                }
+            }
+
+            return responseStatus(res, 403, MSG_403);
+        });
+
         /* ********************* WORKING WITH VM Categories ********************* */
 
         get("/rest/getVMCats", (req, res) -> {
@@ -792,7 +813,7 @@ public class CloudServiceApp {
             return responseStatus(res, 403, MSG_403);
         });
 
-        post("/rest/getDiscsVm", (req, res) -> {
+        /*post("/rest/getDiscsVm", (req, res) -> {
             res.type("application/json");
             User user = isUserLoggedIn(req);
             VM vm = null;
@@ -811,7 +832,7 @@ public class CloudServiceApp {
             }
 
             return responseStatus(res, 403, MSG_403);
-        });
+        });*/
 
         post("/rest/addDisc", (req, res) -> {
             res.type("application/json");
