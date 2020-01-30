@@ -625,7 +625,7 @@ public class CloudServiceApp {
                 if(user.getRole() != User.Role.USER) {
                     String key = req.session(true).attribute("vmToChange");
                     if (key != null) {
-                        return "{\"on\":" + cloudService.toggleState(key) + "}";
+                        return "{\"on\":" + cloudService.toggleState(key) + ",\"vm\":\"" + key + "\"}";
                     } else {
                         return responseStatus(res, 400, MSG_400);
                     }

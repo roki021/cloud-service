@@ -516,6 +516,20 @@ function editVmClick(name) {
                     <input type="checkbox" data-size="sm" id="toggleState" onchange="toggleStateVM();" data-onstyle="success" data-offstyle="danger">
                 </div>
             </div>
+            <div class="form-group">
+                <div class="pt-sm-1 table-wrapper-scroll-y my-custom-scrollbar">
+                <table id="activities" class="table table-hover table-dark mb-0">
+                <thead>
+                    <tr>
+                        <th>Started</th>
+                        <th>Stopped</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+                </table>
+                </div>
+            </div>
             <button type="button" onclick="editVM()" class="btn btn-primary float-right col-sm-auto">Save Changes</button>
 
         </form>
@@ -595,20 +609,33 @@ function setFields(vmName) {
             }
             $('#attachedDiscs').selectpicker();
 
-            console.log(response);
             if(response.activities.length > 0)
                 if(response.activities[response.activities.length-1].stopped == undefined)
                     $("#toggleState").bootstrapToggle('on', true);
-            console.log(response);
-            if(window.localStorage.getItem("role") == "USER")
+            var role = window.localStorage.getItem("role");
+            if(role == "USER")
                 $("#editVmForm :input").prop("disabled", true);
+            else if(role == "SUPER_ADMIN") {
+                $("#activities thead tr").append("<th>Actions</th>");
+            }
+            for(var activity of response.activities) {
+                var extra = `<td><a href="#" onclick=""><i class="fa fa-pencil pr-2"></i></a><a href="#" onclick=""><i class="fa fa-trash-o"></i></a></td>`;
+                var row =
+                `
+                    <tr>
+                        <td>${activity.started}</td>
+                        <td>${activity.stopped == undefined ? "-" : activity.stopped}</td>
+                        ${role == "SUPER_ADMIN" ? extra : ""}
+                    </tr>
+                `;
+                $("#activities tbody").append(row);
+            }
         }
     });
 }
 
 function editVM() {
     var data = getFormData($("#editVmForm"));
-    console.log(data);
     if(data.attachedDiscs != null)
     if(!$.isArray(data.attachedDiscs))
     {
@@ -685,6 +712,8 @@ function toggleStateVM() {
             } else if(data.status == 400) {
                 $("#canvas").empty();
                 $("#canvas").append('<h1>400 Bad Request</h1>');
+            } else {
+                editVmClick(response.vm);
             }
         }
     });
