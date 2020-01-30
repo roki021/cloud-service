@@ -587,7 +587,15 @@ function editVmClick(name) {
                 </div>
             </div>
             <div class="form-group">
-                <div class="pt-sm-1 table-wrapper-scroll-y my-custom-scrollbar">
+                <div class="table-title">
+                    <div class="row col-sm-12">
+                        <div class="col-sm-8"><h2>Activities</h2></div>
+                        <div class="col-sm-4">
+                            <button type="button" class="btn btn-info add-new float-right"><i class="fa fa-plus"></i> Add New</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="pt-sm-1">
                     <table id="activities" class="table table-hover table-dark mb-0">
                         <thead>
                             <tr>
@@ -689,7 +697,7 @@ function setFields(vmName, discList) {
             if(role == "USER")
                 $("#editVmForm :input").prop("disabled", true);
             else if(role == "SUPER_ADMIN") {
-                $("#activities thead tr").append("<th style=\"width: 10%\">Actions  <button type=\"button\" class=\"btn btn-info add-new btn-sm float-right\"><i class=\"fa fa-plus\"></i> Add New</button></th>");
+                $("#activities thead tr").append("<th>Actions</th>");
             }
             for(var activity of response.activities) {
                 var extra = `<td><a href="#" class="add" style="display: none" title="Add" data-toggle="tooltip"><i class="fa fa-plus pr-2"></i></a>
@@ -773,9 +781,11 @@ function editVM() {
     var table = $("#activities").tableToJSON({
             ignoreColumns: [2]
         });
-    if(table[table.length - 1].stopped == "-")
-        table[table.length - 1].stopped = undefined;
-    data.activities = table;
+    if(table.length > 0) {
+        if(table[table.length - 1].stopped == "-")
+            table[table.length - 1].stopped = undefined;
+        data.activities = table;
+    }
     if(data.attachedDiscs != null)
     if(!$.isArray(data.attachedDiscs))
     {

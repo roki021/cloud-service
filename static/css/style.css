@@ -59,12 +59,34 @@ body {
 }
 
 .my-custom-scrollbar {
-position: relative;
-height: 200px;
-overflow: auto;
+    position: relative;
+    height: 200px;
+    overflow: auto;
 }
 .table-wrapper-scroll-y {
-display: block;
+    display: block;
+}
+
+#activities thead {
+    display: table;
+    width: calc(100% - 17px);
+}
+
+#activities tbody {
+    display: block;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+#activities tr {
+    display: table;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+#activities td,
+#activities th {
+    text-align:left;
 }
 
 @media (min-width: 768px) {
