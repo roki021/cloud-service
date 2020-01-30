@@ -239,8 +239,9 @@ function addVmClick() {
     $("#canvas").append(formHolder);
     addVmFillCats();
     if(currentUser == "SUPER_ADMIN")
-        addVmFillOrgs();
-    addVmFillDiscs();
+        addVmFillOrgs(addVmFillDiscs);
+    else
+        addVmFillDiscs();
 }
 
 function loadFields() {
@@ -304,11 +305,10 @@ function addVmFillCats() {
     });
 }
 
-function addVmFillOrgs() {
+function addVmFillOrgs(callback=null) {
     $.ajax({
         url: "rest/getOrgs",
         type: "GET",
-        async: false,
         dataType: "json",
         complete: function(data) {
             response = data.responseJSON;
@@ -329,6 +329,9 @@ function addVmFillOrgs() {
                     $("#organizationSelect").append(row);
                 }
                 $('#organizationSelect').selectpicker();
+
+                if(callback != null)
+                    callback();
             }
         }
     });
@@ -538,11 +541,12 @@ function editVmClick(name) {
     $("#canvas").append(formHolder);
     $('#toggleState').bootstrapToggle()
     addVmFillCats();
-    editVmFillDiscs(name);
     if(currentUser == "SUPER_ADMIN")
-        addVmFillOrgs();
+        addVmFillOrgs(function() {editVmFillDiscs(name);});
+    else
+        editVmFillDiscs(name);
+
     if(currentUser == "USER") {
-        //$("#editVmForm :input").prop("disabled", true);
         $("#editVmForm :button").hide();
     }
 }
@@ -563,33 +567,14 @@ function editVmFillDiscs(vmName) {
                 $("#canvas").append('<h1>404 Not Found</h1>');
             }
             else {
-                for(let disc of response) {
-                    var conf1 = "";
-                    var role = window.localStorage.getItem("role");
-                    if(role != "SUPER_ADMIN" || disc.organizationName == $("#organizationSelect").val()) {
-                        if(!disc.virtualMachine == "")
-                        {
-                            conf1 = "disabled";
-                        }
-                        if(disc.virtualMachine == vmName)
-                        {
-                            conf1 = "";
-                        }
-                        var row =
-                        `
-                            <option value="${disc.name}" ${conf1}>${disc.name}</option>
-                        `;
-                        $("#attachedDiscs").append(row);
-                    }
-                }
-                setFields(vmName);
+                setFields(vmName, response);
             }
 
         }
     });
 }
 
-function setFields(vmName) {
+function setFields(vmName, discList) {
     var s = JSON.stringify({name: vmName});
     $.ajax({
         url: "rest/getVM",
@@ -604,6 +589,27 @@ function setFields(vmName) {
             $("#organizationSelect").val(response.organizationName);
             $("#categorySelect").selectpicker('refresh')
             $("#organizationSelect").selectpicker('refresh')
+
+            for(let disc of discList) {
+                var conf1 = "";
+                var role = window.localStorage.getItem("role");
+                if(role != "SUPER_ADMIN" || disc.organizationName == $("#organizationSelect").val()) {
+                    if(!disc.virtualMachine == "")
+                    {
+                        conf1 = "disabled";
+                    }
+                    if(disc.virtualMachine == vmName)
+                    {
+                        conf1 = "";
+                    }
+                    var row =
+                    `
+                        <option value="${disc.name}" ${conf1}>${disc.name}</option>
+                    `;
+                    $("#attachedDiscs").append(row);
+                }
+            }
+
             for(let disc of response.attachedDiscs) {
                 $("option[value='" + disc + "']").prop("selected", true);
             }
