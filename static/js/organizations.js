@@ -7,9 +7,9 @@ function getOrganizations() {
             var canvas = $("#canvas");
             canvas.empty();
 
-            if(data.status === 403) {
+            if(data.status == 403 || data.status == 400) {
                 response = data.responseJSON;
-                statusMessageStyle(403, response.message);
+                statusMessageStyle(data.status, response.message);
             } else {
                 setUpOrgView(canvas, data.responseJSON);
             }
@@ -40,9 +40,9 @@ function addOrganization(route) {
                 contentType: "application/json",
                 dataType: "json",
                 complete: function(data) {
-                    if(data.status === 403) {
+                    if(data.status == 403 || data.status == 400) {
                         response = data.responseJSON;
-                        statusMessageStyle(403, response.message);
+                        statusMessageStyle(data.status, response.message);
                     } else {
                         response = data.responseJSON;
 
@@ -84,9 +84,9 @@ function editOwnOrganization(route) {
                 contentType: "application/json",
                 dataType: "json",
                 complete: function(data) {
-                    if(data.status === 403) {
+                    if(data.status == 403 || data.status == 400) {
                         response = data.responseJSON;
-                        statusMessageStyle(403, response.message);
+                        statusMessageStyle(data.status, response.message);
                     } else {
                         response = data.responseJSON;
 
@@ -113,9 +113,9 @@ function getUserOrganization() {
         type: "GET",
         dataType: "json",
         complete: function(data) {
-            if(data.status === 403) {
+            if(data.status == 403 || data.status == 400) {
                 response = data.responseJSON;
-                statusMessageStyle(403, response.message);
+                statusMessageStyle(data.status, response.message);
             } else {
                 org = data.responseJSON;
                 if(org != null) {
@@ -139,9 +139,9 @@ function setUpEditForm(orgName) {
         data: jsonData,
         dataType: "json",
         complete: function(data) {
-            if(data.status === 403) {
+            if(data.status == 403 || data.status == 400) {
                 response = data.responseJSON;
-                statusMessageStyle(403, response.message);
+                statusMessageStyle(data.status, response.message);
             } else {
                 org = data.responseJSON;
                 $("#nameField").val(org.name);

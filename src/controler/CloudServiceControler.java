@@ -356,6 +356,7 @@ public class CloudServiceControler {
                 organizations.put(newOrg.getName(), newOrg);
                 changeUsersOrganization(oldKey, newOrg.getName());
                 saveAfterDiscChange();
+                saveFile(users.values(), DATA_PATH + USERS_FILE);
                 retVal = true;
             }
         }

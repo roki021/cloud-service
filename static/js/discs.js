@@ -25,9 +25,9 @@ function getDiscs() {
            var canvas = $("#canvas");
            canvas.empty();
 
-           if(data.status === 403) {
+           if(data.status == 403 || data.status == 400) {
                response = data.responseJSON;
-               statusMessageStyle(403, response.message);
+               statusMessageStyle(data.status, response.message);
            } else {
                setUpDiscView(canvas, data.responseJSON);
            }
@@ -75,9 +75,10 @@ function addDisc(route) {
             contentType: "application/json",
             dataType: "json",
             complete: function(data) {
-                if(data.status === 403) {
+                console.log(data);
+                if(data.status == 403 || data.status == 400) {
                     response = data.responseJSON;
-                    statusMessageStyle(403, response.message);
+                    statusMessageStyle(data.status, response.message);
                 } else {
                     response = data.responseJSON;
 
@@ -103,9 +104,9 @@ function removeDisc(discName) {
         contentType: "application/json",
         dataType: "json",
         complete: function(data) {
-            if(data.status === 403) {
+            if(data.status == 403 || data.status == 400) {
                 response = data.responseJSON;
-                statusMessageStyle(403, response.message);
+                statusMessageStyle(data.status, response.message);
             } else {
                 response = data.responseJSON;
 
@@ -242,9 +243,9 @@ function loadVMs(event) {
         data: jsonData,
         dataType: "json",
         complete: function(data) {
-            if(data.status === 403) {
+            if(data.status == 403 || data.status == 400) {
                 response = data.responseJSON;
-                statusMessageStyle(403, response.message);
+                statusMessageStyle(data.status, response.message);
             } else {
                 var vms = $("#virtualMachineField");
                 vms.find('option').remove();
@@ -274,9 +275,9 @@ function setUpEditFormDisc(discName) {
             data: jsonData,
             dataType: "json",
             complete: function(data) {
-                if(data.status === 403) {
+                if(data.status == 403 || data.status == 400) {
                     response = data.responseJSON;
-                    statusMessageStyle(403, response.message);
+                    statusMessageStyle(data.status, response.message);
                 } else {
                     var disc = data.responseJSON;
                     $("#nameField").val(disc.name);
@@ -301,9 +302,9 @@ function fillDropDowns(callback=null) {
             type: "GET",
             dataType: "json",
             complete: function(data) {
-                if(data.status === 403) {
+                if(data.status == 403 || data.status == 400) {
                     response = data.responseJSON;
-                    statusMessageStyle(403, response.message);
+                    statusMessageStyle(data.status, response.message);
                 } else {
                     var orgs = $("#organizationNameField");
                     orgs.find('option').remove();
@@ -336,9 +337,9 @@ function fillDropDowns(callback=null) {
             type: "GET",
             dataType: "json",
             complete: function(data) {
-                if(data.status === 403) {
+                if(data.status == 403 || data.status == 400) {
                     response = data.responseJSON;
-                    statusMessageStyle(403, response.message);
+                    statusMessageStyle(data.status, response.message);
                 } else {
                     var vms = $("#virtualMachineField");
                     vms.find('option').remove();

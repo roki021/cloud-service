@@ -95,18 +95,23 @@ function changePassword() {
             dataType: "json",
             complete: function(data) {
                 response = data.responseJSON;
-                if(response.changed == 1) {
-                    var wrongCred = $("<div class=\"alert alert-danger text-center\" role=\"alert\"></div>");
-                    wrongCred.text("You entered wrong password");
-                    wrongCred.insertBefore("input[type=button]");
-                } else if (response.changed == 2) {
-                    var wrongCred = $("<div class=\"alert alert-danger text-center\" role=\"alert\"></div>");
-                    wrongCred.text("New password does not match the repeated password");
-                    wrongCred.insertBefore("input[type=button]");
+                if(data.status == 403 || data.status == 400) {
+                    response = data.responseJSON;
+                    statusMessageStyle(data.status, response.message);
                 } else {
-                    var rightCred = $("<div class=\"alert alert-success text-center\" role=\"alert\"></div>");
-                    rightCred.text("Successful editing");
-                    rightCred.insertBefore("input[type=button]");
+                    if(response.changed == 1) {
+                        var wrongCred = $("<div class=\"alert alert-danger text-center\" role=\"alert\"></div>");
+                        wrongCred.text("You entered wrong password");
+                        wrongCred.insertBefore("input[type=button]");
+                    } else if (response.changed == 2) {
+                        var wrongCred = $("<div class=\"alert alert-danger text-center\" role=\"alert\"></div>");
+                        wrongCred.text("New password does not match the repeated password");
+                        wrongCred.insertBefore("input[type=button]");
+                    } else {
+                        var rightCred = $("<div class=\"alert alert-success text-center\" role=\"alert\"></div>");
+                        rightCred.text("Successful editing");
+                        rightCred.insertBefore("input[type=button]");
+                    }
                 }
             }
         });
@@ -120,9 +125,9 @@ function placeEditFormValues() {
         type: "GET",
         dataType: "json",
         complete: function(data) {
-            if(data.status === 403) {
+            if(data.status == 403 || data.status == 400) {
                 response = data.responseJSON;
-                statusMessageStyle(403, response.message);
+                statusMessageStyle(data.status, response.message);
             } else {
                 profile = data.responseJSON;
 
@@ -164,14 +169,19 @@ function editProfile() {
             complete: function(data) {
                 response = data.responseJSON;
 
-                if(!response.changed) {
-                    var wrongCred = $("<div class=\"alert alert-danger text-center\" role=\"alert\"></div>");
-                    wrongCred.text("There is user with given email");
-                    wrongCred.insertBefore("input[type=button]");
+                if(data.status == 403 || data.status == 400) {
+                    response = data.responseJSON;
+                    statusMessageStyle(data.status, response.message);
                 } else {
-                    var rightCred = $("<div class=\"alert alert-success text-center\" role=\"alert\"></div>");
-                    rightCred.text("Successful editing");
-                    rightCred.insertBefore("input[type=button]");
+                    if(!response.changed) {
+                        var wrongCred = $("<div class=\"alert alert-danger text-center\" role=\"alert\"></div>");
+                        wrongCred.text("There is user with given email");
+                        wrongCred.insertBefore("input[type=button]");
+                    } else {
+                        var rightCred = $("<div class=\"alert alert-success text-center\" role=\"alert\"></div>");
+                        rightCred.text("Successful editing");
+                        rightCred.insertBefore("input[type=button]");
+                    }
                 }
             }
         });
@@ -354,11 +364,12 @@ function createSelect(name, labelText, inputClass) {
 }
 
 function statusMessageStyle(statusCode, message) {
-    var div = $(`<div class="row justify-content-center"/>`);
-    div.append(`<h2>Error ${statusCode}</h3>`);
-    div.append(`<h5>${message}</h5>`)
-
-    return div;
+    var canvas = $("#canvas");
+    canvas.empty();
+    var div = $(`<div class="container-fluid"/>`);
+    div.append(`<div><h1>Error ${statusCode}</h1></div>`);
+    div.append(`<div><h2>${message}</h2></div>`)
+    canvas.append(div);
 }
 
 function placeSearchArea() {

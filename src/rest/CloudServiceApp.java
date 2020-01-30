@@ -108,7 +108,7 @@ public class CloudServiceApp {
             try {
                 newPass = g.fromJson(req.body(), PasswordChange.class);
             } catch (Exception ex) {
-                return responseStatus(res, 400, "Bad arguments");
+                return responseStatus(res, 400, MSG_400);
             }
             User user = isUserLoggedIn(req);
 
@@ -116,7 +116,7 @@ public class CloudServiceApp {
                 return "{\"changed\": " + cloudService.changePassword(user, newPass) + "}";
             }
 
-            return responseStatus(res, 403, "Unauthorized access");
+            return responseStatus(res, 403, MSG_403);
         });
 
         /* ********************* WORKING WITH USERS ********************* */
@@ -401,7 +401,7 @@ public class CloudServiceApp {
                 }
             }
 
-            return responseStatus(res, 403, "Unauthorized access");
+            return responseStatus(res, 403, MSG_403);
         });
 
         get("/rest/getUserOrg", (req, res) -> {
@@ -412,7 +412,7 @@ public class CloudServiceApp {
                 return g.toJson(cloudService.getOrganization(user.getOrganization()));
             }
 
-            return responseStatus(res, 403, "Unauthorized access");
+            return responseStatus(res, 403, MSG_403);
         });
 
         /* ********************* WORKING WITH VIRTUAL MACHINES ********************* */
@@ -453,7 +453,7 @@ public class CloudServiceApp {
                 }
             }
 
-            return responseStatus(res, 403, "Unauthorized access");
+            return responseStatus(res, 403, MSG_403);
         });
 
         post("/rest/getOrgVMs", (req, res) -> {
@@ -499,7 +499,7 @@ public class CloudServiceApp {
                             return g.toJson(cloudService.getVM(vm.getName()));
                         }
                         else {
-                            return responseStatus(res, 403, "Unauthorized access");
+                            return responseStatus(res, 403, MSG_403);
                         }
                     }
                     else {
@@ -508,7 +508,7 @@ public class CloudServiceApp {
                 }
             }
 
-            return responseStatus(res, 403, "Unauthorized access");
+            return responseStatus(res, 403, MSG_403);
         });
 
         post("/rest/addVM", (req, res) -> {
@@ -547,7 +547,7 @@ public class CloudServiceApp {
                 }
             }
 
-            return responseStatus(res, 403, "Unauthorized access");
+            return responseStatus(res, 403, MSG_403);
         });
 
         post("/rest/editVM", (req, res) -> {
@@ -575,12 +575,12 @@ public class CloudServiceApp {
                         if(cloudService.getVM(key).getOrganizationName().equals(user.getOrganization()))
                             return "{\"added\":" + cloudService.changeVM(key, vm) + "}";
                         else
-                            return responseStatus(res, 403, "Unauthorized access");
+                            return responseStatus(res, 403, MSG_403);
                     }
                 }
             }
 
-            return responseStatus(res, 403, "Unauthorized access");
+            return responseStatus(res, 403, MSG_403);
         });
 
         post("/rest/removeVM", (req, res) -> {
@@ -610,12 +610,12 @@ public class CloudServiceApp {
                         return "{\"deleted\":" + (v != null) + "}";
                     }
                     else {
-                        return responseStatus(res, 403, "Unauthorized access");
+                        return responseStatus(res, 403, MSG_403);
                     }
                 }
             }
 
-            return responseStatus(res, 403, "Unauthorized access");
+            return responseStatus(res, 403, MSG_403);
         });
 
         get("/rest/toggleState", (req, res) -> {
@@ -634,7 +634,7 @@ public class CloudServiceApp {
                 }
             }
 
-            return responseStatus(res, 403, "Unauthorized access");
+            return responseStatus(res, 403, MSG_403);
         });
 
         post("/rest/getBill", (req, res) -> {
@@ -668,7 +668,7 @@ public class CloudServiceApp {
                 return g.toJson(cloudService.getAllVMCategories());
             }
 
-            return responseStatus(res, 403, "Unauthorized access");
+            return responseStatus(res, 403, MSG_403);
         });
 
         post("/rest/getVMCat2", (req, res) -> {
@@ -688,7 +688,7 @@ public class CloudServiceApp {
                 }
             }
 
-            return responseStatus(res, 403, "Unauthorized access");
+            return responseStatus(res, 403, MSG_403);
         });
 
         post("/rest/getVMCat", (req, res) -> {
@@ -709,7 +709,7 @@ public class CloudServiceApp {
                 }
             }
 
-            return responseStatus(res, 403, "Unauthorized access");
+            return responseStatus(res, 403, MSG_403);
         });
 
         post("/rest/removeCategory", (req, res) -> {
@@ -731,7 +731,7 @@ public class CloudServiceApp {
                         return "{\"removed\": true}";
                 }
             }
-            return responseStatus(res, 403, "Unauthorized access");
+            return responseStatus(res, 403, MSG_403);
         });
 
         post("/rest/addVMCat", (req, res) -> {
@@ -752,7 +752,7 @@ public class CloudServiceApp {
                 }
             }
 
-            return responseStatus(res, 403, "Unauthorized access");
+            return responseStatus(res, 403, MSG_403);
         });
 
         post("/rest/editVMCat", (req, res) -> {
@@ -774,7 +774,7 @@ public class CloudServiceApp {
                 }
             }
 
-            return responseStatus(res, 403, "Unauthorized access");
+            return responseStatus(res, 403, MSG_403);
         });
 
         /* ********************* WORKING WITH DISCS ********************* */
@@ -945,6 +945,6 @@ public class CloudServiceApp {
 
     public static String responseStatus(Response res, int code, String message) {
         res.status(code);
-        return "{\"message\": " + message + "}";
+        return "{\"message\": \"" + message + "\"}";
     }
 }
