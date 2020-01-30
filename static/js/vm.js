@@ -528,7 +528,7 @@ function editVmClick(name) {
     if(currentUser == "SUPER_ADMIN")
         addVmFillOrgs();
     if(currentUser == "USER") {
-        $("#editVmForm :input").prop("disabled", true);
+        //$("#editVmForm :input").prop("disabled", true);
         $("#editVmForm :button").hide();
     }
 }
@@ -576,7 +576,6 @@ function editVmFillDiscs(vmName) {
 }
 
 function setFields(vmName) {
-
     var s = JSON.stringify({name: vmName});
     $.ajax({
         url: "rest/getVM",
@@ -595,11 +594,14 @@ function setFields(vmName) {
                 $("option[value='" + disc + "']").prop("selected", true);
             }
             $('#attachedDiscs').selectpicker();
+
             console.log(response);
             if(response.activities.length > 0)
                 if(response.activities[response.activities.length-1].stopped == undefined)
                     $("#toggleState").bootstrapToggle('on', true);
             console.log(response);
+            if(window.localStorage.getItem("role") == "USER")
+                $("#editVmForm :input").prop("disabled", true);
         }
     });
 }

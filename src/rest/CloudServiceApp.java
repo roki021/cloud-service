@@ -11,6 +11,7 @@ import spark.Session;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import static spark.Spark.*;
 
@@ -130,7 +131,9 @@ public class CloudServiceApp {
             } else if (user.getRole() == User.Role.SUPER_ADMIN) {
                 return g.toJson(cloudService.getAllUsers());
             } else if (user.getRole() == User.Role.ADMIN) {
-                return g.toJson(cloudService.getUsers(user.getOrganization()));
+                List<User> list = cloudService.getUsers(user.getOrganization());
+                list.remove(user);
+                return g.toJson(list);
             } else {
                 res.status(403);
                 return "{\"access\": Unauthorized}";
@@ -619,12 +622,13 @@ public class CloudServiceApp {
             User user = ss.attribute("user");
 
             if (user != null) {
-                String key = req.session(true).attribute("vmToChange");
-                if(key != null) {
-                    return "{\"on\":" + cloudService.toggleState(key) + "}";
-                }
-                else {
-                    return responseStatus(res, 400, MSG_400);
+                if(user.getRole() != User.Role.USER) {
+                    String key = req.session(true).attribute("vmToChange");
+                    if (key != null) {
+                        return "{\"on\":" + cloudService.toggleState(key) + "}";
+                    } else {
+                        return responseStatus(res, 400, MSG_400);
+                    }
                 }
             }
 
