@@ -489,7 +489,11 @@ public class CloudServiceControler {
         return retVal;
     }
 
-
+    public boolean toggleState(String key) {
+        boolean success = virtualMachines.get(key).toggleState();
+        saveFile(virtualMachines.values(), DATA_PATH + VM_FILE);
+        return success;
+    }
 
     /* ********************* DISC ********************* */
 

@@ -29,4 +29,8 @@ public class Activity {
     public void setStopped(Date stopped) {
         this.stopped = stopped;
     }
+
+    public boolean isStopped() {
+        return stopped != null;
+    }
 }

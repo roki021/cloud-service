@@ -613,6 +613,24 @@ public class CloudServiceApp {
             return responseStatus(res, 403, "Unauthorized access");
         });
 
+        get("/rest/toggleState", (req, res) -> {
+            res.type("application/json");
+            Session ss = req.session(true);
+            User user = ss.attribute("user");
+
+            if (user != null) {
+                String key = req.session(true).attribute("vmToChange");
+                if(key != null) {
+                    return "{\"on\":" + cloudService.toggleState(key) + "}";
+                }
+                else {
+                    return responseStatus(res, 400, MSG_400);
+                }
+            }
+
+            return responseStatus(res, 403, "Unauthorized access");
+        });
+
         /* ********************* WORKING WITH VM Categories ********************* */
 
         get("/rest/getVMCats", (req, res) -> {

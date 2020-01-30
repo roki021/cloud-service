@@ -513,7 +513,7 @@ function editVmClick(name) {
             <div class="form-group row">
                 <label for="exampleFormControlInput1" class="col-sm-2 col-form-label">State</label>
                 <div class="col-sm-10 pt-sm-1">
-                    <input type="checkbox" id="toggleState" onchange="toggleState()" data-onstyle="success" data-offstyle="danger">
+                    <input type="checkbox" data-size="sm" id="toggleState" onchange="toggleStateVM();" data-onstyle="success" data-offstyle="danger">
                 </div>
             </div>
             <button type="button" onclick="editVM()" class="btn btn-primary float-right col-sm-auto">Save Changes</button>
@@ -595,7 +595,11 @@ function setFields(vmName) {
                 $("option[value='" + disc + "']").prop("selected", true);
             }
             $('#attachedDiscs').selectpicker();
-
+            console.log(response);
+            if(response.activities.length > 0)
+                if(response.activities[response.activities.length-1].stopped == undefined)
+                    $("#toggleState").bootstrapToggle('on', true);
+            console.log(response);
         }
     });
 }
@@ -661,6 +665,24 @@ function removeVm(vmName) {
                 if(response.deleted == true) {
                     getVMs();
                 }
+            }
+        }
+    });
+}
+
+function toggleStateVM() {
+    $.ajax({
+        url: "rest/toggleState",
+        type: "GET",
+        dataType: "json",
+        complete: function(data) {
+            response = data.responseJSON;
+            if(data.status == 403) {
+                $("#canvas").empty();
+                $("#canvas").append('<h1>403 Forbidden</h1>');
+            } else if(data.status == 400) {
+                $("#canvas").empty();
+                $("#canvas").append('<h1>400 Bad Request</h1>');
             }
         }
     });

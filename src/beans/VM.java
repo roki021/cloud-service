@@ -1,6 +1,7 @@
 package beans;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public  class VM extends Resource{
@@ -64,6 +65,24 @@ public  class VM extends Resource{
 
     public void setOrganizationName(String organizationName) {
         this.organizationName = organizationName;
+    }
+
+    public boolean toggleState() {
+        if(activities.isEmpty()) {
+            activities.add(new Activity(new Date(), null));
+            return true;
+        }
+        else {
+            Activity last = activities.get(activities.size() - 1);
+            if(last.isStopped()) {
+                activities.add(new Activity(new Date(), null));
+                return true;
+            }
+            else {
+                last.setStopped(new Date());
+                return false;
+            }
+        }
     }
 
     @Override
