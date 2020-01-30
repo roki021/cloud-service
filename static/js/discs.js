@@ -60,6 +60,8 @@ function validationDiscForm(formId) {
 
 function addDisc(route) {
     var formData = getFormData($("#discAdd"));
+    if(formData.virtualMachine == undefined)
+        formData.virtualMachine = "";
     var jsonData = JSON.stringify(formData);
 
     $("#discAdd").find("small").remove();

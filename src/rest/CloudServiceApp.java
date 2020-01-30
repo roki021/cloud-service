@@ -554,6 +554,7 @@ public class CloudServiceApp {
             VM vm = null;
             try {
                 vm = g.fromJson(req.body(), VM.class);
+
             } catch (Exception ex) {
                 return responseStatus(res, 400, "Bad request");
             }

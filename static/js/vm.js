@@ -521,16 +521,16 @@ function editVmClick(name) {
             </div>
             <div class="form-group">
                 <div class="pt-sm-1 table-wrapper-scroll-y my-custom-scrollbar">
-                <table id="activities" class="table table-hover table-dark mb-0">
-                <thead>
-                    <tr>
-                        <th>Started</th>
-                        <th>Stopped</th>
-                    </tr>
-                </thead>
-                <tbody>
-                </tbody>
-                </table>
+                    <table id="activities" class="table table-hover table-dark mb-0">
+                        <thead>
+                            <tr>
+                                <th data-override="started">Started</th>
+                                <th data-override="stopped">Stopped</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
                 </div>
             </div>
             <button type="button" onclick="editVM()" class="btn btn-primary float-right col-sm-auto">Save Changes</button>
@@ -622,10 +622,13 @@ function setFields(vmName, discList) {
             if(role == "USER")
                 $("#editVmForm :input").prop("disabled", true);
             else if(role == "SUPER_ADMIN") {
-                $("#activities thead tr").append("<th>Actions</th>");
+                $("#activities thead tr").append("<th style=\"width: 10%\">Actions  <button type=\"button\" class=\"btn btn-info add-new btn-sm float-right\"><i class=\"fa fa-plus\"></i> Add New</button></th>");
             }
             for(var activity of response.activities) {
-                var extra = `<td><a href="#" onclick=""><i class="fa fa-pencil pr-2"></i></a><a href="#" onclick=""><i class="fa fa-trash-o"></i></a></td>`;
+                var extra = `<td><a href="#" class="add" style="display: none" title="Add" data-toggle="tooltip"><i class="fa fa-plus pr-2"></i></a>
+                                 <a href="#" class="edit" title="Edit" data-toggle="tooltip"><i class="fa fa-pencil pr-2"></i></a>
+                                 <a href="#" class="delete" title="Delete" data-toggle="tooltip"><i class="fa fa-trash-o"></i></a>
+                             </td>`;
                 var row =
                 `
                     <tr>
@@ -640,8 +643,72 @@ function setFields(vmName, discList) {
     });
 }
 
+$(document).ready(function(){
+	$('[data-toggle="tooltip"]').tooltip();
+	var actions =
+	`<a href="#" class="add" style="display: none" title="Add" data-toggle="tooltip"><i class="fa fa-plus pr-2"></i></a>
+        <a href="#" class="edit" title="Edit" data-toggle="tooltip"><i class="fa fa-pencil pr-2"></i></a>
+        <a href="#" class="delete" title="Delete" data-toggle="tooltip"><i class="fa fa-trash-o"></i></a>
+    `;
+	// Append table with add row form on add new button click
+    $(document).on("click", ".add-new", function(){
+        console.log("roleeeeeeee");
+		$(this).attr("disabled", "disabled");
+		var index = $("table tbody tr:last-child").index();
+        var row = '<tr>' +
+            '<td><input type="text" class="form-control" name="started" id="started"></td>' +
+            '<td><input type="text" class="form-control" name="stopped" id="stopped"></td>' +
+			'<td>' + actions + '</td>' +
+        '</tr>';
+        console.log(row);
+    	$("table").append(row);
+		$("table tbody tr").eq(index + 1).find(".add, .edit").toggle();
+        //$('[data-toggle="tooltip"]').tooltip();
+    });
+	// Add row on add button click
+	$(document).on("click", ".add", function(){
+		var empty = false;
+		var input = $(this).parents("tr").find('input[type="text"]');
+        input.each(function(){
+			if(!$(this).val()){
+				$(this).addClass("error");
+				empty = true;
+			} else{
+                $(this).removeClass("error");
+            }
+		});
+		$(this).parents("tr").find(".error").first().focus();
+		if(!empty){
+			input.each(function(){
+				$(this).parent("td").html($(this).val());
+			});
+			$(this).parents("tr").find(".add, .edit").toggle();
+			$(".add-new").removeAttr("disabled");
+		}
+    });
+	// Edit row on edit button click
+	$(document).on("click", ".edit", function(){
+        $(this).parents("tr").find("td:not(:last-child)").each(function(){
+			$(this).html('<input type="text" class="form-control" value="' + $(this).text() + '">');
+		});
+		$(this).parents("tr").find(".add, .edit").toggle();
+		$(".add-new").attr("disabled", "disabled");
+    });
+	// Delete row on delete button click
+	$(document).on("click", ".delete", function(){
+        $(this).parents("tr").remove();
+		$(".add-new").removeAttr("disabled");
+    });
+});
+
 function editVM() {
     var data = getFormData($("#editVmForm"));
+    var table = $("#activities").tableToJSON({
+            ignoreColumns: [2]
+        });
+    if(table[table.length - 1].stopped == "-")
+        table[table.length - 1].stopped = undefined;
+    data.activities = table;
     if(data.attachedDiscs != null)
     if(!$.isArray(data.attachedDiscs))
     {
@@ -670,6 +737,9 @@ function editVM() {
                 $("#canvas").empty();
                 if(data.status == 403) {
                     $("#canvas").append('<h1>403 Forbidden</h1>');
+                }
+                else if(data.status == 400) {
+                    $("#canvas").append('<h1>400 Bad Request</h1>');
                 } else {
                     if(data.responseJSON.added) {
                         getVMs()
