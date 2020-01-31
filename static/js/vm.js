@@ -734,12 +734,11 @@ $(document).ready(function(){
     `;
 	// Append table with add row form on add new button click
     $(document).on("click", ".add-new", function(){
-        console.log("roleeeeeeee");
 		$(this).attr("disabled", "disabled");
 		var index = $("table tbody tr:last-child").index();
         var row = '<tr>' +
-            '<td><input type="text" class="form-control" name="started" id="started"></td>' +
-            '<td><input type="text" class="form-control" name="stopped" id="stopped"></td>' +
+            '<td><input type="datetime-local" class="form-control" name="started" id="started"></td>' +
+            '<td><input type="datetime-local" class="form-control" name="stopped" id="stopped"></td>' +
 			'<td>' + actions + '</td>' +
         '</tr>';
         console.log(row);
@@ -750,7 +749,7 @@ $(document).ready(function(){
 	// Add row on add button click
 	$(document).on("click", ".add", function(){
 		var empty = false;
-		var input = $(this).parents("tr").find('input[type="text"]');
+		var input = $(this).parents("tr").find('input[type="datetime-local"]');
         input.each(function(){
 			if(!$(this).val()){
 				$(this).addClass("error");
@@ -771,7 +770,7 @@ $(document).ready(function(){
 	// Edit row on edit button click
 	$(document).on("click", ".edit", function(){
         $(this).parents("tr").find("td:not(:last-child)").each(function(){
-			$(this).html('<input type="text" class="form-control" value="' + $(this).text() + '">');
+			$(this).html('<input type="datetime-local" class="form-control" value="' + $(this).text() + '">');
 		});
 		$(this).parents("tr").find(".add, .edit").toggle();
 		$(".add-new").attr("disabled", "disabled");
