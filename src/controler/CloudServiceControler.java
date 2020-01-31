@@ -433,12 +433,12 @@ public class CloudServiceControler {
                     intervalEnd = act.getStopped();
                 }
                 else {
-                    intervalEnd = period.getFromDate();
+                    intervalEnd = period.getToDate();
                 }
             }
 
             long diff = intervalEnd.getTime() - intervalStart.getTime();
-            long diffHours = diff / (60 * 60 * 1000);
+            double diffHours = diff / (60.0 * 60.0 * 1000.0);
 
             int coreNum = vmCategories.get(vm.getCategoryName()).getCores();
             int ramNum = vmCategories.get(vm.getCategoryName()).getRam();
@@ -453,7 +453,7 @@ public class CloudServiceControler {
 
     private double calculateDiscBill(Disc disc, PeriodBill period) {
         long diff = period.getToDate().getTime() - period.getFromDate().getTime();
-        long diffHours = diff / (60 * 60 * 1000);
+        double diffHours = diff / (60.0 * 60.0 * 1000.0);
 
         if(disc.getDiscType() == Disc.DiscType.SSD) {
             return diffHours * SSD_PRICE_GB * disc.getCapacity();
@@ -555,20 +555,25 @@ public class CloudServiceControler {
     public Collection<PeriodBill> getBill(User u, PeriodBill period) {
         ArrayList<PeriodBill> billing = new ArrayList<PeriodBill>();
 
-        for(String resource : organizations.get(u.getOrganization()).getResources()) {
-            PeriodBill bill = new PeriodBill(period);
-            if(virtualMachines.containsKey(resource)) {
-                VM vm = virtualMachines.get(resource);
-                bill.setPrice(calculateVMBill(vm, period));
-                bill.setResourceName(resource);
-            }
+        if(period.checkDateInterval()) {
+            for (String resource : organizations.get(u.getOrganization()).getResources()) {
+                PeriodBill bill = new PeriodBill(period);
+                if (virtualMachines.containsKey(resource)) {
+                    VM vm = virtualMachines.get(resource);
+                    bill.setPrice(calculateVMBill(vm, period));
+                    bill.setResourceName(resource);
+                }
 
-            if(discs.containsKey(resource)) {
-                Disc disc = discs.get(resource);
-                bill.setPrice(calculateDiscBill(disc, period));
-                bill.setResourceName(resource);
+                if (discs.containsKey(resource)) {
+                    Disc disc = discs.get(resource);
+                    bill.setPrice(calculateDiscBill(disc, period));
+                    bill.setResourceName(resource);
+                }
+                billing.add(bill);
             }
-            billing.add(bill);
+        }
+        else {
+            billing.add(null);
         }
 
         return billing;

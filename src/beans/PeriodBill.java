@@ -55,4 +55,8 @@ public class PeriodBill {
     public void setResourceName(String resourceName) {
         this.resourceName = resourceName;
     }
+
+    public boolean checkDateInterval() {
+        return toDate.getTime() - fromDate.getTime() >= 0;
+    }
 }

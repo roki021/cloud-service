@@ -36,52 +36,59 @@ function placeBillFilter() {
 function getBill() {
     var formData = getFormData($("#billForm"));
     var jsonData = JSON.stringify(formData);
-    console.log(formData);
 
-    $.ajax({
-        url: "rest/getBill",
-        type: "POST",
-        contentType: "application/json",
-        data: jsonData,
-        dataType: "json",
-        complete: function(data) {
-            if(data.status == 400 || data.status == 403) {
-                var response = data.responseJSON;
-                statusMessageStyle(data.status, response.message);
-            } else {
-                var canvas = $("#canvas");
-                canvas.empty();
+    if(isInputEmptyOrWhitespaces("#billForm")) {
+        $.ajax({
+            url: "rest/getBill",
+            type: "POST",
+            contentType: "application/json",
+            data: jsonData,
+            dataType: "json",
+            complete: function(data) {
+                if(data.status == 400 || data.status == 403) {
+                    var response = data.responseJSON;
+                    statusMessageStyle(data.status, response.message);
+                } else {
+                    var canvas = $("#canvas");
+                    var billing = data.responseJSON;
 
-                var billing = data.responseJSON;
+                    if(billing[0] != null) {
+                        canvas.empty();
 
-                var div = $(`<div class="mt-sm-3 mr-sm-1 ml-sm-1 row justify-content-center"/>`);
-                var table = $(`<table class="table table-hover table-dark"/>`);
-                table.append(
-                `
-                    <thead>
-                        <tr>
-                            <th colspan=2 class="text-center">${formatDate(formData.fromDate)} - ${formatDate(formData.toDate)}</th>
-                        </tr>
-                        <tr>
-                            <th>Resource name</th>
-                            <th>Price</th>
-                        </tr>
-                    </thead>
-                `);
-                var tbody = $("<tbody/>");
-                var totalPrice = 0.0;
-                table.append(tbody);
-                for(let bill of billing) {
-                    totalPrice += bill.price;
-                    tbody.append(`<tr><td>${bill.resourceName}</td><td>${bill.price.toFixed(2)}€</td></tr>`);
+                        var div = $(`<div class="mt-sm-3 mr-sm-1 ml-sm-1 row justify-content-center"/>`);
+                        var table = $(`<table class="table table-hover table-dark"/>`);
+                        table.append(
+                        `
+                            <thead>
+                                <tr>
+                                    <th colspan=2 class="text-center">${formatDate(formData.fromDate)} - ${formatDate(formData.toDate)}</th>
+                                </tr>
+                                <tr>
+                                    <th>Resource name</th>
+                                    <th>Price</th>
+                                </tr>
+                            </thead>
+                        `);
+                        var tbody = $("<tbody/>");
+                        var totalPrice = 0.0;
+                        table.append(tbody);
+                        for(let bill of billing) {
+                            totalPrice += bill.price;
+                            tbody.append(`<tr><td>${bill.resourceName}</td><td>${bill.price.toFixed(2)}€</td></tr>`);
+                        }
+
+                        tbody.append(`<tr><td>Total</td><td>${totalPrice.toFixed(2)}€</td></tr>`);
+                        div.append(table);
+                        canvas.append(div);
+                    } else {
+                        var wrongCred = $("<div class=\"alert alert-danger text-center\" role=\"alert\"></div>");
+                        wrongCred.text("Not valid date interval");
+                        wrongCred.insertBefore("input[type=button]");
+                    }
                 }
-
-                tbody.append(`<tr><td>Total</td><td>${totalPrice.toFixed(2)}€</td></tr>`);
-                div.append(table);
-                canvas.append(div);
             }
-        }
-    });
+        });
+    }
 }
 
 function setUpVMView(canvas, vms) {
