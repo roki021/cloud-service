@@ -11,6 +11,7 @@ function getVMCats() {
                 response = data.responseJSON;
                 statusMessageStyle(403, response.message);
             } else {
+                $("#user-name").text(window.localStorage.getItem("username"));
                 setUpVMCatsView(canvas, data.responseJSON);
             }
         }

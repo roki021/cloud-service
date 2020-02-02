@@ -57,6 +57,11 @@ public class PeriodBill {
     }
 
     public boolean checkDateInterval() {
-        return toDate.getTime() - fromDate.getTime() >= 0;
+        return (toDate.getTime() - fromDate.getTime() >= 0) && beforeToday();
+    }
+
+    public boolean beforeToday() {
+        Date now = new Date();
+        return now.after(fromDate) && now.after(toDate);
     }
 }

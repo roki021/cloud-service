@@ -11,6 +11,7 @@ function getOrganizations() {
                 response = data.responseJSON;
                 statusMessageStyle(data.status, response.message);
             } else {
+                $("#user-name").text(window.localStorage.getItem("username"));
                 setUpOrgView(canvas, data.responseJSON);
             }
         }

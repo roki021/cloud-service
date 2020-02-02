@@ -11,6 +11,7 @@ function getVMs() {
                 response = data.responseJSON;
                 statusMessageStyle(403, response.message);
             } else {
+                $("#user-name").text(window.localStorage.getItem("username"));
                 setUpVMView(canvas, data.responseJSON);
             }
         }

@@ -8,6 +8,7 @@ function getUsers() {
             if(data.status == 403) {
                 $("#canvas").append('<h1>403 Forbidden</h1>');
             } else {
+                $("#user-name").text(window.localStorage.getItem("username"));
                 response = data.responseJSON;
                 var div = $(`<div class="mt-sm-3 mr-sm-1 ml-sm-1 row justify-content-center"/>`);
                 var table = $("<table/>");

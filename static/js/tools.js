@@ -270,7 +270,7 @@ function loggedOut() {
  }
 
 function setUpPageByUser(user) {
-    $("#user-name").text(user.firstName);
+    window.localStorage.setItem("username", user.firstName);
     var sidebarItems = $("#sidebar-items");
 
     sidebarItems.append(createSidebarItem("Virtual machines", "vms", getVMs));
