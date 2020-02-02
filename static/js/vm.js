@@ -742,7 +742,6 @@ $(document).ready(function(){
             '<td><input type="datetime-local" class="form-control" name="stopped" id="stopped"></td>' +
 			'<td>' + actions + '</td>' +
         '</tr>';
-        console.log(row);
     	$("table").append(row);
 		$("table tbody tr").eq(index + 1).find(".add, .edit").toggle();
         //$('[data-toggle="tooltip"]').tooltip();
@@ -751,18 +750,24 @@ $(document).ready(function(){
 	$(document).on("click", ".add", function(){
 		var empty = false;
 		var input = $(this).parents("tr").find('input[type="datetime-local"]');
-        input.each(function(){
-			if(!$(this).val()){
-				$(this).addClass("error");
-				empty = true;
-			} else{
-                $(this).removeClass("error");
+        input.each(function() {
+            if($(this).attr("id") == "started") {
+                if(!$(this).val()){
+                    $(this).addClass("error");
+                    empty = true;
+                } else{
+                    $(this).removeClass("error");
+                }
             }
 		});
 		$(this).parents("tr").find(".error").first().focus();
 		if(!empty){
 			input.each(function(){
-				$(this).parent("td").html($(this).val());
+			    if($(this).attr("id") == "stopped" && !$(this).val()){
+                    $(this).parent("td").html("-");
+                } else {
+				    $(this).parent("td").html($(this).val());
+				}
 			});
 			$(this).parents("tr").find(".add, .edit").toggle();
 			$(".add-new").removeAttr("disabled");
@@ -771,8 +776,11 @@ $(document).ready(function(){
 	// Edit row on edit button click
 	$(document).on("click", ".edit", function(){
         $(this).parents("tr").find("td:not(:last-child)").each(function(){
-			$(this).html('<input type="datetime-local" class="form-control" value="' + $(this).text() + '">');
+            var val = $(this).text() == "-" ? "" : $(this).text();
+			$(this).html('<input type="datetime-local" class="form-control" value="' + val + '">');
 		});
+		$($(this).parents("tr").find('input[type="datetime-local"]')[0]).attr("id", "started");
+		$($(this).parents("tr").find('input[type="datetime-local"]')[1]).attr("id", "stopped");
 		$(this).parents("tr").find(".add, .edit").toggle();
 		$(".add-new").attr("disabled", "disabled");
     });
