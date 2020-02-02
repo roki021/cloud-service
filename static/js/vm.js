@@ -307,7 +307,7 @@ function addVmClick() {
                     </select>
                 </div>
             </div>
-            <button type="button" onclick="addVM()" class="btn btn-primary float-right col-sm-auto">Add Virtual Machine</button>
+            <button type="button" id="sender" onclick="addVM()" class="btn btn-primary float-right col-sm-auto">Add Virtual Machine</button>
         </form>
     `;
     formHolder.append(form);
@@ -515,12 +515,21 @@ function addVM() {
             contentType: "application/json",
             dataType: "json",
             complete: function(data) {
-                $("#canvas").empty();
-                if(data.status == 403) {
+                if(data.status == 400) {
+                    $("#canvas").empty();
+                    $("#canvas").append('<h1>400 Bad Request</h1>');
+                }
+                else if(data.status == 403) {
+                    $("#canvas").empty();
                     $("#canvas").append('<h1>403 Forbidden</h1>');
                 } else {
                     if(data.responseJSON.added) {
                         getVMs()
+                    }
+                    else {
+                        var wrongCred = $("<div class=\"alert alert-danger text-center\" role=\"alert\"></div>");
+                        wrongCred.text("There is already disc or VM with this name");
+                        wrongCred.insertBefore("#sender");
                     }
                 }
             }
@@ -599,7 +608,7 @@ function editVmClick(name) {
                     <div class="row col-sm-12">
                         <div class="col-sm-8"><h2>Activities</h2></div>
                         <div class="col-sm-4">
-                            <button type="button" class="btn btn-info add-new float-right"><i class="fa fa-plus"></i> Add New</button>
+                            <button type="button" id="addNewButton" class="btn btn-info add-new float-right"><i class="fa fa-plus"></i> Add New</button>
                         </div>
                     </div>
                 </div>
@@ -616,7 +625,7 @@ function editVmClick(name) {
                     </table>
                 </div>
             </div>
-            <button type="button" onclick="editVM()" class="btn btn-primary float-right col-sm-auto">Save Changes</button>
+            <button type="button" id="sender" onclick="editVM()" class="btn btn-primary float-right col-sm-auto">Save Changes</button>
 
         </form>
     `;
@@ -626,8 +635,10 @@ function editVmClick(name) {
     addVmFillCats();
     if(currentUser == "SUPER_ADMIN")
         addVmFillOrgs(function() {editVmFillDiscs(name);});
-    else
+    else {
+        $("#addNewButton").remove();
         editVmFillDiscs(name);
+    }
 
     if(currentUser == "USER") {
         $("#editVmForm :button").hide();
@@ -812,6 +823,7 @@ function editVM() {
     var input = $("#nameField");
     input.removeClass("border border-danger");
     $("#msg").remove();
+    $("#editVmForm").find(".alert").remove();
     if($.trim(input.val()) == "") {
         input.addClass("border border-danger");
         var logMsg = $("<small id=\"msg\" class=\"form-text text-muted log-msg\"></small>");
@@ -826,15 +838,24 @@ function editVM() {
             contentType: "application/json",
             dataType: "json",
             complete: function(data) {
-                $("#canvas").empty();
                 if(data.status == 403) {
+                    $("#canvas").empty();
                     $("#canvas").append('<h1>403 Forbidden</h1>');
                 }
                 else if(data.status == 400) {
+                    $("#canvas").empty();
                     $("#canvas").append('<h1>400 Bad Request</h1>');
                 } else {
-                    if(data.responseJSON.added) {
+                    if(data.responseJSON.added == 0) {
                         getVMs()
+                    } else if(data.responseJSON.added == 1){
+                        var wrongCred = $("<div class=\"alert alert-danger text-center\" role=\"alert\"></div>");
+                        wrongCred.text("There is already disc or VM with this name");
+                        wrongCred.insertBefore("#sender");
+                    } else {
+                        var wrongCred = $("<div class=\"alert alert-danger text-center\" role=\"alert\"></div>");
+                        wrongCred.text("Activities contains invalid data.");
+                        wrongCred.insertBefore("#sender");
                     }
                 }
             }

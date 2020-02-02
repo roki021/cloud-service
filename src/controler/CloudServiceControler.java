@@ -507,10 +507,12 @@ public class CloudServiceControler {
         return vm;
     }
 
-    public boolean changeVM(String oldKey, VM newVM) {
-        boolean retVal = false;
+    public int changeVM(String oldKey, VM newVM) {
+        int retVal = 1;
         if(newVM != null) {
             if(!virtualMachines.containsKey(newVM.getName()) || oldKey.equals(newVM.getName())) {
+                if(newVM.checkOverlapActivities())
+                    return 2;
                 ArrayList<String> oldAttachedDiscs = new ArrayList<String>();
                 oldAttachedDiscs = (ArrayList<String>) getVM(oldKey).getAttachedDiscs();
                 removeVM(oldKey);
@@ -539,7 +541,7 @@ public class CloudServiceControler {
                 saveFile(discs.values(), DATA_PATH + DISC_FILE);
                 saveFile(organizations.values(), DATA_PATH + ORG_FILE);
 
-                retVal = true;
+                retVal = 0;
             }
         }
 

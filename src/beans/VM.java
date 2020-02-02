@@ -94,4 +94,20 @@ public  class VM extends Resource{
                 ", activities=" + activities +
                 '}';
     }
+
+    public boolean checkOverlapActivities() {
+        for(int i = 0; i < activities.size() - 1; i++) {
+            if(activities.get(i).getStopped() == null)
+                return true;
+        }
+
+        for(int i = 0; i < activities.size() - 1; i++) {
+            for(int j = i + 1; j < activities.size(); j++) {
+                if(activities.get(i).isOverlapping(activities.get(j)))
+                    return true;
+            }
+        }
+
+        return false;
+    }
 }

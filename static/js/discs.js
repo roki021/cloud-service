@@ -76,7 +76,6 @@ function addDisc(route) {
             contentType: "application/json",
             dataType: "json",
             complete: function(data) {
-                console.log(data);
                 if(data.status == 403 || data.status == 400) {
                     response = data.responseJSON;
                     statusMessageStyle(data.status, response.message);

@@ -33,7 +33,6 @@ function addOrganization(route) {
         nameInput.parent().append(logMsg);
     } else {
         getImgBytes(function(jsonData) {
-            console.log(jsonData);
             $.ajax({
                 url: route,
                 type: "POST",
@@ -219,7 +218,6 @@ function createTableRowOrg(org) {
 
 function getImgBytes(callback, data) {
     logoImg = $("#logoUrlField")[0];
-    console.log(logoImg.files);
     if(logoImg.files.length != 0) {
         if(logoImg.files[0].type.includes("image") && (logoImg.files[0].size / 1048576.0) < 1.0) {
             var reader = new FileReader();
