@@ -56,11 +56,11 @@ public class Organization {
     }
 
     public List<String> getUsers() {
-        return List.copyOf(users);
+        return users;
     }
 
     public List<String> getResources() {
-        return List.copyOf(resources);
+        return resources;
     }
 
     public boolean containsUser(String userName) {
